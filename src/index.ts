@@ -17,7 +17,7 @@ import { bootstrapServices } from './services';
 
 dotenv.config();
 
-const port = (process.env.PORT && parseInt(process.env.PORT)) || 4000;
+const port = (process.env.PORT && parseInt(process.env.PORT)) || 8080;
 
 const connectToMongodb = async () => {
   const memoryServer = await MongoMemoryServer.create();
