@@ -22,7 +22,7 @@ const Article = Schema('IArticle', {
   updatedAt: Type.Date(),
 });
 
-const GetArticlesQueryParams = Schema('GetDogsQueryParams', {
+const GetArticlesQueryParams = Schema('GetArticlesQueryParams', {
   author: Type.Optional(Type.String()),
   title: Type.Optional(Type.String()),
   tags: Type.Optional(Type.Array(Type.Ref(Tag))),
@@ -37,6 +37,8 @@ export type Tag = Static<typeof Tag>;
 export type IArticle = Static<typeof Article>;
 
 export default {
+  Tag,
+  Article,
   GetArticlesQueryParams,
   GetArticlesResponse,
 };

@@ -2,6 +2,7 @@ import 'reflect-metadata';
 
 import dotenv from 'dotenv';
 import fastify, { FastifyInstance } from 'fastify';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import throng from 'throng';
 import { container } from 'tsyringe';
@@ -19,8 +20,8 @@ dotenv.config();
 const port = (process.env.PORT && parseInt(process.env.PORT)) || 4000;
 
 const connectToMongodb = async () => {
-  // TODO: replace with actual url
-  await mongoose.connect('MY_DB_URL', { ssl: true });
+  const memoryServer = await MongoMemoryServer.create();
+  await mongoose.connect(memoryServer.getUri());
 };
 
 export const bootstrapContainer = (): FastifyInstance => {
@@ -30,10 +31,7 @@ export const bootstrapContainer = (): FastifyInstance => {
   container.register<Schemas>(DI_TOKEN.SCHEMAS, { useValue: schemas });
   container.register<IAuthenticationMethod>(DI_TOKEN.AUTHENTICATION, {
     useValue: {
-      authenticate: async (request, reply) => {
-        // TODO: override your authentication method here
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      },
+      authenticate: undefined,
     },
   });
   container.register<IArticleModel>(EXTERNAL_SERVICE_TOKEN.MONGO_MODEL, {
@@ -53,6 +51,7 @@ const start = async () => {
   await connectToMongodb();
   const server = bootstrapContainer();
 
+  await server.ready();
   await server.listen({ port, host: '0.0.0.0' });
   console.debug('Server started!');
 };
