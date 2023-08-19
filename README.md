@@ -2,6 +2,17 @@
 
 A `nodeJS` web API with [Fastify](https://github.com/fastify/fastify) for performance, [`TSyringe`](https://github.com/microsoft/tsyringe) for dependency injection, and [TypeBox](https://github.com/sinclairzx81/typebox) for auto generated Swagger documentation and runtime API input validation.
 
+- [Server](#fastify-server-with-dependency-injection-runtime-type-validation-auto-doc-generation-and-logging)
+- [Setup](#setup)
+- [Usage](#usage)
+- [Explaining the Architecture](#explaining-the-architecture)
+  - [Easily Inject Dependencies - TSyringe](#easily-inject-dependencies---tsyringe)
+  - [Cleanly Group and Declare Routes - Service Structure](#cleanly-group-and-declare-routes---service-structure)
+  - [Auto Generated Documentation - Fastify Swagger](#auto-generated-documentation---fastify-swagger)
+  - [Runtime Type Safety and Validation for the API - Typebox](#runtime-type-safety-and-validation-for-the-api---typebox)
+  - [Logging](#logging)
+- [Managing Complex Services](#managing-complex-services)
+
 ## Setup
 
 Run `npm install` to install the dependencies. Use `npm run dev` to start the server. This runs the server setup by the `registrar` in `src/server/index.ts` on port 8080.
@@ -70,13 +81,13 @@ export class TestService {
 
   @Get('/', {
     auth: true,
-    query: 'GetDataQueryRequest',
-    response: 'GetDataQueryResponse',
+    query: 'GetDataQueryParams',
+    response: 'GetDataResponse',
   })
   async getData(
     req: TypedRequest<{
-      query: 'GetDataQueryRequest';
-      response: 'GetDataQueryResponse';
+      query: 'GetDataQueryParams';
+      response: 'GetDataResponse';
     }>
   ) {
     const { facilities, date } = req.query;
@@ -114,15 +125,32 @@ This project uses `Typebox` for type validation. Schemas are defined in `/src/sc
 // src/schemas/test.ts
 import { Static, Type } from '@sinclair/typebox';
 
-export const GetDataQueryRequest = Type.Object({
-  tags: Type.Array(Type.String()),
-  author: Type.String(),
-});
+export const GetDataQueryParams = Type.Object(
+  {
+    tags: Type.Array(Type.String()),
+    author: Type.String(),
+  },
+  { $id: 'GetDataQueryParams' }
+);
+export const GetDataResponse = Type.Object(
+  {
+    data: Type.Array(
+      Type.Object({
+        id: Type.String(),
+        title: Type.String(),
+        content: Type.String(),
+      })
+    ),
+  },
+  { $id: 'GetDataResponse' }
+);
 
 export type TGetDataQueryRequest = Static<typeof GetDataQueryRequest>;
+export type TGetDataResponse = Static<typeof GetDataResponse>;
 
 export default {
   GetDataQueryRequest,
+  GetDataResponse,
 };
 ```
 
@@ -165,13 +193,13 @@ export class TestService {
 
   @Get('/', {
     auth: true,
-    query: 'GetDataQueryRequest',
-    response: 'GetDataQueryResponse',
+    query: 'GetDataQueryParams',
+    response: 'GetDataResponse',
   })
   async getData(
     req: TypedRequest<{
-      query: 'GetDataQueryRequest';
-      response: 'GetDataQueryResponse';
+      query: 'GetDataQueryParams';
+      response: 'GetDataResponse';
     }>
   ) {
     const { facilities, date } = req.query;
@@ -191,4 +219,157 @@ To set up authentication, we need to specify the `authenticate` method of the `I
 ```typescript
 container.register<IAuthenticationMethod>(DI_TOKEN.AUTHENTICATION, {
   useValue: { authenticate: undefined });
+```
+
+## Managing Complex Services
+
+When a service is comprised of routes that have an advanced implementation, it can sometimes be nicer to let each route have its own handler. There are two easy ways to do this with this architecture.
+
+### Mediator Design Pattern for Route Handling
+
+```typescript
+// services/advanced/advanced.service.ts
+
+export class AdvancedService {
+  constructor(private readonly _handlerFactory: AdvancedServiceHandlerFactory) {}
+
+  @Get('/advanced', {
+    auth: true,
+    query: 'GetAdvancedHandlerQueryParams',
+    response: 'GetAdvancedHandlerResponse',
+  })
+  async advancedHandler(
+    req: TypedRequest<{
+      query: 'GetAdvancedHandlerQueryParams';
+      response: 'GetAdvancedHandlerResponse';
+    }>
+  ) {
+    const response = await this._handlerFactory.getAdvancedHandler().handle(req);
+
+    return response;
+  }
+
+  @Get('/advanced-2', {
+    auth: true,
+    query: 'GetAdvancedHandlerTwoQueryParams',
+    response: 'GetAdvancedHandlerTwoResponse',
+  })
+  async advancedHandler(
+    req: TypedRequest<{
+      query: 'GetAdvancedHandlerTwoQueryParams';
+      response: 'GetAdvancedHandlerTwoResponse';
+    }>
+  ) {
+    const response = await this._handlerFactory.getAdvancedHandlerTwo().handle(req);
+
+    return response;
+  }
+}
+```
+
+The handler factory is responsible for injecting the shared dependencies of all the handlers and returning the correct handler for the route. E.g.:
+
+```typescript
+// services/advanced/advanced-service-handler-factory.ts
+interface IHandler<T extends IRoute> {
+  handle(request: TypedRequest<T>): TypedResponse<T>;
+}
+
+interface IAdvancedServiceHandlerFactory {
+  getAdvancedHandler(): IHandler<{
+    query: 'GetAdvancedHandlerQueryParams';
+    response: 'GetAdvancedHandlerResponse';
+  }>;
+  getAdvancedHandlerTwo(): IHandler<{
+    query: 'GetAdvancedHandlerTwoQueryParams';
+    response: 'GetAdvancedHandlerTwoResponse';
+  }>;
+}
+
+@singleton()
+export class AdvancedServiceHandlerFactory implements IAdvancedServiceHandlerFactory {
+  constructor(
+    private readonly _controller: Controller,
+    private readonly _storage: Storage,
+    private readonly _loggerFactory: LoggerFactory
+  ) {}
+
+  getAdvancedHandler() {
+    return new AdvancedHandler(this._controller, this._storage, this._loggerFactory);
+  }
+
+  getAdvancedHandlerTwo() {
+    return new AdvancedHandlerTwo(this._controller, this._loggerFactory);
+  }
+}
+```
+
+### Multiple Service Classes
+
+Another possible pattern is to instead create a `Service` class for each route - all under the same module name. E.g.:
+
+```typescript
+// services/advanced/advanced-handler.service.ts
+@injectable()
+@Service('advanced')
+export class AdvancedHandlerService {
+  constructor(
+    private readonly _controller: Controller,
+    private readonly _storage: Storage,
+    private readonly _loggerFactory: LoggerFactory
+  ) {}
+
+  @Get('/advanced', {
+    auth: true,
+    query: 'GetAdvancedHandlerQueryParams',
+    response: 'GetAdvancedHandlerResponse',
+  })
+  async advancedHandler(
+    req: TypedRequest<{
+      query: 'GetAdvancedHandlerQueryParams';
+      response: 'GetAdvancedHandlerResponse';
+    }>
+  ) {
+    // implement complex route here
+  }
+}
+
+// services/advanced/advanced-handler-two.service.ts
+@injectable()
+@Service('advanced')
+export class AdvancedHandlerServiceTwo {
+  constructor(
+    private readonly _controller: Controller,
+    private readonly _loggerFactory: LoggerFactory
+  ) {}
+
+  @Get('/advanced-2', {
+    auth: true,
+    query: 'GetAdvancedHandlerTwoQueryParams',
+    response: 'GetAdvancedHandlerTwoResponse',
+  })
+  async advancedHandler(
+    req: TypedRequest<{
+      query: 'GetAdvancedHandlerTwoQueryParams';
+      response: 'GetAdvancedHandlerTwoResponse';
+    }>
+  ) {
+    // complex implementation two
+  }
+}
+
+// src/services/services.provider.ts
+import { container } from 'tsyringe';
+
+import { DI_TOKEN } from '@/di';
+
+import { AdvancedHandlerService, AdvancedHandlerServiceTwo } from './advanced';
+
+const bootstrapService = () => {
+  container.registerSingleton<AdvancedHandlerService>(DI_TOKEN.SERVICE, AdvancedHandlerService);
+  container.registerSingleton<AdvancedHandlerServiceTwo>(
+    DI_TOKEN.SERVICE,
+    AdvancedHandlerServiceTwo
+  );
+};
 ```
