@@ -1,7 +1,8 @@
-import { LogLevel } from 'fastify';
 import { singleton } from 'tsyringe';
 
 import { TracingStorage } from './tracing-storage';
+
+export type LogLevel = 'info' | 'error' | 'debug';
 
 type ILog = {
   level: LogLevel;

@@ -60,7 +60,7 @@ class TracingExtension implements IServerExtension {
 
   public setup() {
     this._server.addHook('onRequest', (request, _reply, done) => {
-      const traceId = 'req-' + nanoid(8);
+      const traceId = nanoid(12);
       request.traceId = traceId;
       this._storage.run(traceId, done);
     });

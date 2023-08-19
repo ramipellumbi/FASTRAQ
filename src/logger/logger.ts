@@ -1,16 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { LogLevel } from 'fastify';
 import { TransformableInfo } from 'logform';
 import util from 'util';
 import winston from 'winston';
 
-import { LoggerCache } from './logger-cache';
+import { LoggerCache, LogLevel } from './logger-cache';
 import { TracingStorage } from './tracing-storage';
 
 export interface ILogger {
-  debug(message: string, ...splat: string[]): void;
-  info(message: string, ...splat: string[]): void;
-  error(message: string, ...splat: string[]): void;
+  debug(...messages: string[]): void;
+  info(...messages: string[]): void;
+  error(...messages: string[]): void;
 
   dumpInfoLogs(): void;
   dumpAllLogs(): void;
@@ -27,16 +26,22 @@ export class Logger implements ILogger {
     this._logger = winston.createLogger({
       level: 'debug',
       format: winston.format.combine(
-        this._combineMessageAndSplat(),
+        winston.format.timestamp(),
+        this._customFormat(),
         winston.format.json()
       ),
-      defaultMeta: { service: _service },
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.combine(winston.format.timestamp(), this._customFormat()),
+        }),
+      ],
     });
-    this._logger.add(
-      new winston.transports.Console({
-        format: winston.format.simple(),
-      })
-    );
+  }
+
+  private _customFormat(): winston.Logform.Format {
+    return winston.format.printf(({ timestamp, level, message, service, traceId }) => {
+      return `[${timestamp}] ${level.toUpperCase()} (service=${service}, traceId=${traceId}) - ${message}`;
+    });
   }
 
   public dumpInfoLogs(): void {
@@ -44,8 +49,10 @@ export class Logger implements ILogger {
       .get(this._storage.traceId)
       .filter((log) => log.level === 'info')
       .forEach((log) => {
-        log.messages.forEach((message) => {
-          this._logger.info(this._storage.traceId, message);
+        const formattedMessage = log.messages.join(' ');
+        this._logger.info(formattedMessage, {
+          service: log.service,
+          traceId: this._storage.traceId,
         });
       });
   }
@@ -53,7 +60,7 @@ export class Logger implements ILogger {
   public dumpAllLogs(): void {
     this._cache.get(this._storage.traceId).forEach((log) => {
       log.messages.forEach((message) => {
-        this._logger.info(this._storage.traceId, message);
+        this._logger.info(message, { service: log.service, traceId: this._storage.traceId });
       });
     });
   }
@@ -62,32 +69,29 @@ export class Logger implements ILogger {
     return {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       transform: (info: TransformableInfo, _opts?: any) => {
-        info.message = util.format(
-          info.message,
-          ...(info[Symbol.for('splat') as any] || [])
-        );
+        info.message = util.format(info.message, ...(info[Symbol.for('splat') as any] || []));
         return info;
       },
     };
   }
 
-  private _logToCache(level: LogLevel, message: string, ...splat: any[]): void {
+  private _logToCache(level: LogLevel, messages: string[]): void {
     this._cache.add({
       service: this._service,
-      messages: [message, ...splat],
+      messages,
       level,
     });
   }
 
-  debug(message: string, ...splat: string[]): void {
-    this._logToCache('debug', message, ...splat);
+  debug(...messages: string[]): void {
+    this._logToCache('debug', messages);
   }
 
-  info(message: string, ...splat: any[]): void {
-    this._logToCache('info', message, ...splat);
+  info(...messages: string[]): void {
+    this._logToCache('info', messages);
   }
 
-  error(message: string, ...splat: any[]): void {
-    this._logToCache('error', message, ...splat);
+  error(...messages: string[]): void {
+    this._logToCache('error', messages);
   }
 }
