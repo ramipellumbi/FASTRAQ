@@ -1,6 +1,6 @@
 # Fastify Server with Dependency Injection, Runtime Type Validation, Auto Doc Generation, And Logging
 
-A `nodeJS` web API with [Fastify](https://github.com/fastify/fastify) for performance, [`TSyringe`](https://github.com/microsoft/tsyringe) for dependency injection, and [TypeBox](https://github.com/sinclairzx81/typebox) for runtime API input validation.
+A `nodeJS` web API with [Fastify](https://github.com/fastify/fastify) for performance, [`TSyringe`](https://github.com/microsoft/tsyringe) for dependency injection, and [TypeBox](https://github.com/sinclairzx81/typebox) for auto generated Swagger documentation and runtime API input validation.
 
 ## Setup
 
