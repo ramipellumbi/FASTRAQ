@@ -1,6 +1,6 @@
 import swagger, { SwaggerOptions } from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
-import { FastifyInstance, RouteHandlerMethod } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { nanoid } from 'nanoid';
 import { container, inject, singleton } from 'tsyringe';
 
@@ -10,7 +10,6 @@ import { TracingStorage } from '@/logger';
 declare module 'fastify' {
   interface FastifyRequest {
     traceId: string;
-    authenticate: RouteHandlerMethod;
   }
 }
 
@@ -18,12 +17,8 @@ export interface IServerExtension {
   setup(): void;
 }
 
-export abstract class BaseServerExtension implements IServerExtension {
-  abstract setup(): void;
-}
-
 @singleton()
-class SwaggerExtension extends BaseServerExtension {
+class SwaggerExtension implements IServerExtension {
   private readonly _swaggerOptions: SwaggerOptions = {
     openapi: {
       info: {
@@ -46,9 +41,7 @@ class SwaggerExtension extends BaseServerExtension {
     },
   };
 
-  constructor(@inject(DI_TOKEN.FASTIFY) private readonly _server: FastifyInstance) {
-    super();
-  }
+  constructor(@inject(DI_TOKEN.FASTIFY) private readonly _server: FastifyInstance) {}
 
   public setup() {
     this._server.register(swagger, this._swaggerOptions);
@@ -59,13 +52,11 @@ class SwaggerExtension extends BaseServerExtension {
 }
 
 @singleton()
-class TracingExtension extends BaseServerExtension {
+class TracingExtension implements IServerExtension {
   constructor(
     @inject(DI_TOKEN.FASTIFY) private readonly _server: FastifyInstance,
     private readonly _storage: TracingStorage
-  ) {
-    super();
-  }
+  ) {}
 
   public setup() {
     this._server.addHook('onRequest', (request, _reply, done) => {
