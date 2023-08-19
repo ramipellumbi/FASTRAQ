@@ -7,7 +7,7 @@ import { IAuthenticationMethod, IRouteConfig } from './server.types';
 import { Schemas } from './server.types';
 
 import { DI_TOKEN } from '@/di';
-import { ILogger, LoggerFactory, TracingStorage } from '@/logger';
+import { ILogger, LoggerFactory } from '@/logger';
 
 export interface IRegistrar {
   server: FastifyInstance;
@@ -26,7 +26,6 @@ export class Registrar implements IRegistrar {
     private readonly _extensions: IServerExtension[],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     @injectAll(DI_TOKEN.SERVICE) private readonly _services: any[],
-    private readonly _storage: TracingStorage,
     private readonly _loggerFactory: LoggerFactory
   ) {
     this._registerExtensions();
