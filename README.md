@@ -1,12 +1,12 @@
 # Fastify Server with Dependency Injection, Runtime Type Validation, Auto Doc Generation, And Logging
 
-A `nodeJS` web API with Fastify for performance, Tsyringe for dependency injection, and Typebox for runtime safe type validation.
+A `nodeJS` web API with [Fastify](https://github.com/fastify/fastify) for performance, [`TSyringe`](https://github.com/microsoft/tsyringe) for dependency injection, and [TypeBox](https://github.com/sinclairzx81/typebox) for runtime safe type validation.
 
 ## Setup
 
 Run `npm install` to install the dependencies. Use `npm run dev` to start the server. This runs the server setup by the `registrar` in `src/server/index.ts`.
 
-Generate the react query client by running npm run generateclient. Edit the location of the generated client in `generate-client.ts`.
+Generate the react query client by running `npm run generateclient`. Edit the location of the generated client in `generate-client.ts`.
 
 ## Usage
 
@@ -21,7 +21,7 @@ There was a few wants that led to this architecture:
 3. I wanted to be able to easily generate swagger documentation.
 4. I wanted runtime type safety and validation for my API.
 5. I wanted to be able to easily trace and group logs back to the request that invoked them.
-6. I want to easily be able to mark routes as authentication required.
+6. I want to easily be able to mark routes as "requires authentication" vs. "no authentication required".
 
 The below is an elaboration on how I achieved these wants.
 
@@ -57,6 +57,7 @@ interface IRoute {
 Example service:
 
 ```typescript
+// services/test.service.ts
 import { injectable } from 'tsyringe';
 
 import { Controller } from '@/mongodb';
@@ -88,6 +89,7 @@ export class TestService {
 This registers the route `/test` with runtime validated query parameters and response as defined in `src/server/schemas`. The handler for response is the async function `getData`. This service would be made available to our server by registering it in the function `bootstrapServices` under `src/services/services.provider.ts` under the token `DI_TOKEN.SERVICE`:
 
 ```typescript
+// src/services/services.provider.ts
 import { container } from 'tsyringe';
 
 import { DI_TOKEN } from '@/di';
@@ -101,13 +103,14 @@ const bootstrapService = () => {
 
 ### Auto Generated Documentation - Fastify Swagger
 
-This project uses `Fastify` as a web server. The server has its routes registered by the `Registrar` in `server.registrar.ts`. OpenAPI swagger documentation is auto generated from the typebox schemas.
+This project uses `Fastify` as a web server. The server has its routes registered by the `Registrar` in `server.registrar.ts`. This is a custom abstraction used to support this architecture. OpenAPI swagger documentation is auto generated from the typebox schemas.
 
 ### Runtime Type Safety and Validation for the API - Typebox
 
 This project uses `Typebox` for type validation. Schemas are defined in `/src/schemas`. These schemas are used to validate requests and responses. Example schema:
 
 ```typescript
+// src/schemas/test.ts
 import { Static, Type } from '@sinclair/typebox';
 
 export const GetDataQueryRequest = Type.Object({
@@ -140,8 +143,10 @@ This is made possibly by `AsyncLocalStorage`. In the `onRequest` stage of the re
 To add logging to a service, we simply inject the `LoggerFactory` and logging is automatically done with the `traceId` of the request. In the service example from earlier:
 
 ```typescript
+// services/test.service.ts
 import { injectable } from 'tsyringe';
 
+import { LoggerFactory } from '@/logger';
 import { Controller } from '@/mongodb';
 import { Get, Post, Service, TypedRequest } from '@/server';
 
@@ -179,7 +184,7 @@ export class TestService {
 
 ### Authentication
 
-To set up authentication, we need to speciffy the `authenticate` method of the `IAuthenticationMethod` registered to the container in `src/index.ts`.
+To set up authentication, we need to specify the `authenticate` method of the `IAuthenticationMethod` registered to the container in `src/index.ts`.
 
 ```typescript
 container.register<IAuthenticationMethod>(DI_TOKEN.AUTHENTICATION, {
