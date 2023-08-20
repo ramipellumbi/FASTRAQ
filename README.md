@@ -2,11 +2,16 @@
 
 This toolkit provides an efficient, typed, and well-documented web API setup using Fastify, complete with dependency injection, auto-generated documentation, and extensive logging.
 
+- [License](#license)
 - [Setup](#setup)
 - [Usage](#usage)
 - [Architecture Overview](#architecture-overview)
 - [Managing Complex Services](#managing-complex-services)
 - [Conclusion](#conclusion)
+
+## License
+
+Duel licensed under the [MIT License](./LICENSE.md) and the [Apache License 2.0](./LICENSE-APACHE-2.md), at your option. This repository, or any subset of its contents, may not be copied, modified, or distributed except according to those terms.
 
 ## Setup
 
