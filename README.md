@@ -239,9 +239,38 @@ export class TestService {
 }
 ```
 
+#### Logging Decorator
+
+To add quick logging to a function, we can use the `log` decorator. This decorator takes an optional input `{ successMessage, errorMessage }`. This decorator will add logging around the function in the case of success and error. The `successMessage` and `errorMessage` are optional and default to `Successfully completed functionName` and `error.message`, respectively. Success logs are `debug` level, and error logs are `error` level. All logs will be logged under the `traceId` of the request invoking the function. Example:
+
+```typescript
+// external-services/mongodb/test.controller.ts
+import { singleton } from 'tsyringe';
+
+import { log } from '@/decorators';
+import { Model } from '@/mongodb';
+
+@singleton()
+export class TestController {
+  constructor(private readonly _model: Model) {}
+
+  @log({ successMessage: 'Helper function completed successfully' })
+  helperFunction() {
+    // ...
+  }
+
+  @log({ successMessage: 'Data retrieved successfully' })
+  async getData(facilities: string[], date: string) {
+    // ...
+  }
+}
+```
+
+This lets us add debug and error logs to our log dump on error and is useful for being able to trace back to the point of application failure. For lower level logging, we can use the logger factory as shown above.
+
 ### Authentication
 
-To set up authentication, we need to specify the `authenticate` method of the `IAuthenticationMethod` registered to the container in `src/index.ts`.
+To set up authentication, we need to specify the `authenticate` method of the `IAuthenticationMethod` registered to the container in `src/index.ts`. All routes marked with `auth: true` will require the `authenticate` function to move the request past the `preHandler` stage of the request lifecycle.
 
 ```typescript
 container.register<IAuthenticationMethod>(DI_TOKEN.AUTHENTICATION, {
