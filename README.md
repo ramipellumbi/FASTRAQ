@@ -6,6 +6,7 @@ This toolkit provides an efficient, typed, and well-documented web API setup usi
 - [Usage](#usage)
 - [Architecture Overview](#architecture-overview)
 - [Managing Complex Services](#managing-complex-services)
+- [Conclusion](#conclusion)
 
 ## Setup
 
