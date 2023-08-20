@@ -85,17 +85,24 @@ export class Registrar implements IRegistrar {
               let logger: ILogger | undefined;
 
               try {
-                logger = this._loggerFactory.createLogger(request.routerPath);
+                logger = this._loggerFactory.createLogger(
+                  request.method + ' ' + request.routerPath
+                );
+                logger.info('Request received.');
 
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const instance: any = container.resolve(service.constructor);
                 const method = instance[route.schema.operationId];
 
                 const result = await method.call(instance, request);
+                logger.info('Request Succeeded.');
                 logger.dumpInfoLogs();
                 reply.code(200).send(result);
               } catch (e) {
                 if (logger) {
+                  if (e instanceof Error) {
+                    logger.error(e.message);
+                  }
                   logger.dumpAllLogs();
                 }
 
