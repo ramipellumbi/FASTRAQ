@@ -19,6 +19,9 @@ export interface IAuthenticationMethod {
   authenticate: RouteHandlerMethod | undefined;
 }
 
+/**
+ * Specification for a route.
+ */
 export interface IRoute {
   readonly auth: boolean;
   readonly body?: Extract<keyof TSchemas, string> | null;
@@ -27,6 +30,9 @@ export interface IRoute {
   readonly response?: Extract<keyof TSchemas, string> | null;
 }
 
+/**
+ * Type for the request object received by a route
+ */
 export type TypedRequest<T extends Pick<IRoute, 'body' | 'params' | 'query' | 'response'>> =
   FastifyRequest<{
     Body: Static<TSchemas[NonNullable<T['body']>]>;
@@ -35,10 +41,16 @@ export type TypedRequest<T extends Pick<IRoute, 'body' | 'params' | 'query' | 'r
     Reply: Static<TSchemas[NonNullable<T['response']>]>;
   }>;
 
+/**
+ * Type for the response object returned by a route
+ */
 export type TypedResponse<T extends IRoute> = T['response'] extends keyof TSchemas
   ? Promise<Static<TSchemas[NonNullable<T['response']>]>>
   : Promise<void>;
 
+/**
+ * Type type routes of a service as added as
+ */
 export type IRouteConfig = {
   url: string;
   auth: boolean;

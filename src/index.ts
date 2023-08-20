@@ -12,7 +12,7 @@ import { ArticleModel, IArticleModel } from './external-services/mongodb/article
 import schemas from './schemas';
 import { IAuthenticationMethod, Schemas } from './server';
 import bootstrapExtensions from './server/server.extensions';
-import { IRegistrar, Registrar } from './server/server.registrar';
+import { Registrar } from './server/server.registrar';
 import { bootstrapServices } from './services';
 
 dotenv.config();
@@ -41,7 +41,7 @@ export const bootstrapContainer = (): FastifyInstance => {
   bootstrapExtensions();
   bootstrapServices();
 
-  const registrar = container.resolve<IRegistrar>(Registrar);
+  const registrar = container.resolve(Registrar);
 
   return registrar.server;
 };

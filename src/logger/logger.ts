@@ -23,6 +23,12 @@ export class Logger implements ILogger {
     private readonly _cache: LoggerCache,
     private readonly _storage: TracingStorage
   ) {
+    winston.addColors({
+      info: 'bold blue',
+      error: 'bold red',
+      debug: 'bold green',
+    });
+
     this._logger = winston.createLogger({
       level: 'debug',
       format: winston.format.combine(
@@ -32,15 +38,19 @@ export class Logger implements ILogger {
       ),
       transports: [
         new winston.transports.Console({
-          format: winston.format.combine(winston.format.timestamp(), this._customFormat()),
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            this._customFormat(),
+            winston.format.colorize({ all: true })
+          ),
         }),
       ],
     });
   }
 
   private _customFormat(): winston.Logform.Format {
-    return winston.format.printf(({ timestamp, level, message, service, traceId }) => {
-      return `[${timestamp}] ${level.toUpperCase()} (service=${service}, traceId=${traceId}) - ${message}`;
+    return winston.format.printf(({ timestamp, level, source, message, service, traceId }) => {
+      return `[${timestamp}] ${level.toUpperCase()} (service=${service}, source=${source}, traceId=${traceId}) - ${message}`;
     });
   }
 
@@ -50,8 +60,9 @@ export class Logger implements ILogger {
       .filter((log) => log.level === 'info')
       .forEach((log) => {
         const formattedMessage = log.messages.join(' ');
-        this._logger.info(formattedMessage, {
+        this._logger[log.level](formattedMessage, {
           service: log.service,
+          source: this._service,
           traceId: this._storage.traceId,
         });
       });
@@ -59,8 +70,11 @@ export class Logger implements ILogger {
 
   public dumpAllLogs(): void {
     this._cache.get(this._storage.traceId).forEach((log) => {
-      log.messages.forEach((message) => {
-        this._logger.info(message, { service: log.service, traceId: this._storage.traceId });
+      const formattedMessage = log.messages.join(' ');
+      this._logger[log.level](formattedMessage, {
+        service: log.service,
+        source: this._service,
+        traceId: this._storage.traceId,
       });
     });
   }

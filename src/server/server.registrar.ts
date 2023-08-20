@@ -9,7 +9,7 @@ import { Schemas } from './server.types';
 import { DI_TOKEN } from '@/di';
 import { ILogger, LoggerFactory } from '@/logger';
 
-export interface IRegistrar {
+interface IRegistrar {
   server: FastifyInstance;
 }
 
@@ -33,6 +33,10 @@ export class Registrar implements IRegistrar {
     this._registerServices();
   }
 
+  public get server(): FastifyInstance {
+    return this._server;
+  }
+
   private _registerExtensions() {
     for (const extension of this._extensions) {
       extension.setup();
@@ -43,10 +47,6 @@ export class Registrar implements IRegistrar {
     for (const $id in this._schemas) {
       this._server.addSchema(this._schemas[$id]);
     }
-  }
-
-  public get server(): FastifyInstance {
-    return this._server;
   }
 
   private _registerServices() {

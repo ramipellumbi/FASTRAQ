@@ -3,6 +3,7 @@ import { inject, singleton } from 'tsyringe';
 
 import { IArticleModel } from './articles.schema';
 
+import { log } from '@/decorators';
 import { EXTERNAL_SERVICE_TOKEN } from '@/di';
 import { GetArticlesQueryParams, IArticle } from '@/schemas/articles';
 
@@ -10,6 +11,7 @@ import { GetArticlesQueryParams, IArticle } from '@/schemas/articles';
 export class ArticlesController {
   constructor(@inject(EXTERNAL_SERVICE_TOKEN.MONGO_MODEL) private readonly _model: IArticleModel) {}
 
+  @log({ successMessage: 'Successfully retrieved articles' })
   public async getArticles(query: GetArticlesQueryParams): Promise<IArticle[]> {
     const { author, title, tags } = query;
 
