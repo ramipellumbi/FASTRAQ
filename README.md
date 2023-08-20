@@ -1,16 +1,10 @@
-# Fastify Server with Dependency Injection, Runtime Type Validation, Auto Doc Generation, And Logging
+# Fastify-Based NodeJS API Toolkit
 
-A `nodeJS` web API with [Fastify](https://github.com/fastify/fastify) for performance, [`TSyringe`](https://github.com/microsoft/tsyringe) for dependency injection, and [TypeBox](https://github.com/sinclairzx81/typebox) for auto generated Swagger documentation and runtime API input validation.
+This toolkit provides an efficient, typed, and well-documented web API setup using Fastify, complete with dependency injection, auto-generated documentation, and extensive logging.
 
-- [Server](#fastify-server-with-dependency-injection-runtime-type-validation-auto-doc-generation-and-logging)
 - [Setup](#setup)
 - [Usage](#usage)
-- [Explaining the Architecture](#explaining-the-architecture)
-  - [Easily Inject Dependencies - TSyringe](#easily-inject-dependencies---tsyringe)
-  - [Cleanly Group and Declare Routes - Service Structure](#cleanly-group-and-declare-routes---service-structure)
-  - [Auto Generated Documentation - Fastify Swagger](#auto-generated-documentation---fastify-swagger)
-  - [Runtime Type Safety and Validation for the API - Typebox](#runtime-type-safety-and-validation-for-the-api---typebox)
-  - [Logging](#logging)
+- [Architecture Overview](#architecture-overview)
 - [Managing Complex Services](#managing-complex-services)
 
 ## Setup
@@ -23,18 +17,18 @@ Generate the react query client by running `npm run generateclient`. Edit the lo
 
 A server is a collection of services, which are a collection of endpoints. Every endpoint is typed using [TypeBox](https://github.com/sinclairzx81/typebox), which type-checks all of your endpoints and is used by [fastify-swagger](https://github.com/fastify/fastify-swagger) to generate API documentation for you. Authentication is supported by registering an `IAuthenticationMethod` to the container.
 
-## Explaining the Architecture
+## Architecture Overview
 
-There was a few wants that led to this architecture:
+This project was designed with the following goals:
 
-1. I wanted to be able to easily inject dependencies into my services.
-2. I wanted a way to cleanly group and declare the routes for my services.
-3. I wanted to be able to easily generate swagger documentation.
-4. I wanted runtime type safety and validation for my API.
-5. I wanted to be able to easily trace and group logs back to the request that invoked them.
-6. I want to easily be able to mark routes as "requires authentication" vs. "no authentication required".
+1. **Dependency Injection**: Easily inject dependencies using TSyringe.
+2. **Route Management**: Group and declare routes using the Service structure.
+3. **Documentation**: Auto-generate Swagger documentation.
+4. **Type Safety**: Ensure runtime type safety and validation for the API using Typebox.
+5. **Logging**: Trace logs back to their originating request.
+6. **Authentication**: Specify routes that require authentication.
 
-The below is an elaboration on how I achieved these wants.
+Below, we explore the solutions to these goals:
 
 ### Easily Inject Dependencies - TSyringe
 
@@ -223,7 +217,7 @@ container.register<IAuthenticationMethod>(DI_TOKEN.AUTHENTICATION, {
 
 ## Managing Complex Services
 
-When a service is comprised of routes that have an advanced implementation, it can sometimes be nicer to let each route have its own handler. There are two easy ways to do this with this architecture.
+In situations where a service contains intricate routes, it's useful to separate concerns for clarity and maintainability. Here are a couple of patterns to manage such scenarios:
 
 ### Mediator Design Pattern for Route Handling
 
@@ -373,3 +367,9 @@ const bootstrapService = () => {
   );
 };
 ```
+
+## Conclusion
+
+This toolkit provides a robust foundation for creating a well-structured Fastify-based NodeJS API. With features like dependency injection, auto-documentation, and advanced logging, developers can focus more on building the actual API logic and less on boilerplate setup.
+
+For further exploration, consider checking out the [Fastify documentation](https://www.fastify.io/docs/), [tsyringe](https://github.com/microsoft/tsyringe), [fastify-swagger](https://github.com/fastify/fastify-swagger), and [TypeBox GitHub](https://github.com/sinclairzx81/typebox).
