@@ -22,11 +22,11 @@ A server is a collection of services, which are a collection of endpoints. Every
 This project was designed with the following goals:
 
 1. **Dependency Injection**: Easily inject dependencies using TSyringe.
-2. **Route Management**: Group and declare routes using the Service structure.
+2. **Route Management**: Easily group and declare routes.
 3. **Documentation**: Auto-generate Swagger documentation.
-4. **Type Safety**: Ensure runtime type safety and validation for the API using Typebox.
+4. **Type Safety**: Ensure runtime type safety and validation for the API.
 5. **Logging**: Trace logs back to their originating request.
-6. **Authentication**: Specify routes that require authentication.
+6. **Authentication**: Easily enable / disable a routes authentication.
 
 Below, we explore the solutions to these goals:
 
