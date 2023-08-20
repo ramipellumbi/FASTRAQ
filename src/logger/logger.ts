@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TransformableInfo } from 'logform';
-import util from 'util';
 import winston from 'winston';
 
 import { LoggerCache, LogLevel } from './logger-cache';
@@ -78,17 +76,6 @@ export class Logger implements ILogger {
       });
     });
   }
-
-  private _combineMessageAndSplat() {
-    return {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      transform: (info: TransformableInfo, _opts?: any) => {
-        info.message = util.format(info.message, ...(info[Symbol.for('splat') as any] || []));
-        return info;
-      },
-    };
-  }
-
   private _logToCache(level: LogLevel, messages: string[]): void {
     this._cache.add({
       service: this._service,
