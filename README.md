@@ -133,8 +133,8 @@ export class TestService {
       response: 'GetDataResponse';
     }>
   ) {
-    const { facilities, date } = req.query;
-    const data = await this._controller.getData(facilities, date);
+    const { date } = req.query;
+    const data = await this._controller.getData(date);
 
     return { data };
   }
@@ -262,8 +262,8 @@ export class TestService {
       response: 'GetDataResponse';
     }>
   ) {
-    const { facilities, date } = req.query;
-    const data = await this._controller.getData(facilities, date);
+    const { date } = req.query;
+    const data = await this._controller.getData(date);
 
     this._logger.info('My Log');
 
@@ -299,7 +299,7 @@ export class TestController {
   }
 
   @log({ successMessage: 'Data retrieved successfully' })
-  async getData(facilities: string[], date: string) {
+  async getData(date: string) {
     // ...
   }
 }
