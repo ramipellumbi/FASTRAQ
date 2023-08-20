@@ -70,9 +70,59 @@ Below, we explore the solutions to these goals:
 
 ### Easily Inject Dependencies - `tsyringe`
 
-This project uses [`tsyringe`](https://github.com/microsoft/tsyringe) for dependency injection. All singleton classes that are not registered to the container under the same token are decorated with `@singleton()`.
-This both registers the service as a singleton to the container and marks the service as injectable.
-Singleton classes that are registered to the container under the same token values, like services, are marked with just `@injectable()` when they must inject their dependencies.
+This project uses [`tsyringe`](https://github.com/microsoft/tsyringe) for dependency injection, offering a streamlined way to manage dependencies.
+
+- **Singleton Decorator**: Singleton classes in the template code, when not under a shared token, employ the `@singleton()` decorator. This action not only registers the service to the container as a singleton but also flags it as injectable. For instance:
+
+  ```typescript
+  @singleton()
+  class TestController {}
+  ```
+
+  This is a shorthand for:
+
+  ```typescript
+  class TestController {}
+  container.registerSingleton<TestController>(TestController);
+  ```
+
+  Such a class can be directly and effortlessly injected into others:
+
+  ```typescript
+  @injectable()
+  class SomeService {
+    constructor(private readonly _testController: TestController) {}
+  }
+  ```
+
+- **Interfaces and Tokens**: For enhanced maintainability, it's often desirable to operate with interfaces rather than concrete classes. This introduces the need to register the interface with a specific token and then associate that token with its concrete implementation. Here's an example:
+
+  ```typescript
+  interface ITestController {
+    /// ...
+  }
+
+  class TestController implements ITestController {
+    /// ...
+  }
+
+  const ITestControllerToken = Symbol('ITestController');
+
+  container.registerSingleton<ITestController>(ITestControllerToken, TestController);
+  ```
+
+  Now, to inject the interface, we utilize:
+
+  ```typescript
+  @injectable()
+  class SomeService {
+    constructor(@inject(ITestControllerToken) private readonly _testController: ITestController) {}
+  }
+  ```
+
+  This approach is essential due to TypeScript's nature, where interfaces exist at design-time but vanish during runtime. Thus, the token acts as a bridge to link the interface with its concrete counterpart during dependency resolution.
+
+The method you choose largely depends on the clarity and flexibility you desire in your application's architecture. Leveraging interfaces with tokens provides a clear demarcation between contract (interface) and implementation, optimizing the project for maintainability and scalability.
 
 ### Cleanly Group and Declare Routes - Service Structure
 
@@ -207,7 +257,13 @@ export default {
 
 ### Logging
 
-The logging system ensures that every log entry is associated with the traceId of the request triggering the log. This facilitates easy tracking of individual request execution flows.
+The logging system is designed for clarity and traceability. Every log entry is tagged with the traceId of the originating request, enabling precise tracking of individual request lifecycles. Adopting an event-driven debug logging approach, the system behaves as follows:
+
+- **Successful Requests**: Only the 'info' logs pertinent to the request are logged.
+
+- **Failed Requests**: Alongside the 'info' logs, the 'debug' and 'error' logs relevant to the request are also captured.
+
+This methodology ensures that developers can quickly discern the flow and potential issues of any request, streamlining diagnostics and debugging.
 
 #### Sample Output
 
@@ -217,8 +273,8 @@ When two users (e.g., user-1 and user-2) simultaneously invoke `/test/data`, the
 [2023-08-16T18:56:00.000Z] INFO (traceId=req-1) - Request received
 [2023-08-16T18:56:00.002Z] INFO (traceId=req-2) - Request received
 [2023-08-16T18:56:00.100Z] INFO (traceId=req-2) - Request succeeded
+[2023-08-16T18:56:00.103Z] DEBUG (traceId=req-1) - Succesfully ran helper
 [2023-08-16T18:56:00.105Z] ERROR (traceId=req-1) - Error in getData
-[2023-08-16T18:56:00.110Z] INFO (traceId=req-1) - Request failed
 ```
 
 #### Technical Implementation
@@ -274,10 +330,11 @@ export class TestService {
 
 #### Logging Decorator
 
-For a quick logging integration, utilize the `@log()` decorator. This decorator optionally accepts `{ successMessage, errorMessage }`, which default to `"Successfully completed functionName"` and `error.message`, respectively.
+For a quick logging integration, utilize the `@log()` decorator. This decorator optionally accepts `{ successMessage, errorMessage, logArgs }`, which default to `"Successfully completed functionName"`, `error.message`, and `true`, respectively.
 
 - Success Logs: These are of debug level.
 - Error Logs: These are of error level.
+- Log Args: These are the arguments passed to the function. If `true`, the arguments are logged on error. If `false`, the arguments are not logged.
 - All logs correspond to the traceId of the initiating request.
 
 ##### Decorator Example
