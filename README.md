@@ -174,8 +174,8 @@ export class TestService {
 
   @Get('/me', {
     auth: true,
-    query: 'GetDataQueryParams',
-    response: 'GetDataResponse',
+    query: 'GetDataQueryParams', // <-- fully typed, must be a schema in `src/schemas/index.ts`
+    response: 'GetDataResponse', // <-- fully typed, must be a schema in `src/schemas/index.ts`
   })
   async getData(
     req: TypedRequest<{
