@@ -11,6 +11,7 @@ const config = {
   moduleFileExtensions: ['ts', 'js', 'tsx', 'jsx', 'json', 'node'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.jsx?$': '$1',
+    '^@/decorators': '<rootDir>/src/decorators.ts',
     '^@/di': '<rootDir>/src/di.ts',
     '^@/logger': '<rootDir>/src/logger',
     '^@/mongodb': '<rootDir>/src/external-services/mongodb',
@@ -21,4 +22,4 @@ const config = {
   },
 };
 
-module.exports = config;
+export default config;
