@@ -49,7 +49,7 @@ It contains the following properties
 
 ```typescript
 // default export from `src/schemas/index.ts` that has all typebox schemas
-type Schemas = typeof schemas;
+type TSchemas = typeof schemas;
 
 interface IRoute {
   readonly auth: boolean;
