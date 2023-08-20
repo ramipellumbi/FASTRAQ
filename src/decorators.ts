@@ -29,7 +29,7 @@ export function log(
       try {
         const logger = loggerFactory.createLogger(String(propertyName));
         const result = await method.apply(this, args);
-        logger.debug(successMessage || 'Successfully completed ' + String(propertyName));
+        logger.debug(successMessage || 'Successfully completed');
         return result;
       } catch (e) {
         const logger = loggerFactory.createLogger(String(propertyName));
