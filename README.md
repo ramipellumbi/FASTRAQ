@@ -1,6 +1,7 @@
-# Fastify-Based NodeJS API Toolkit
+# Fastify-Based NodeJS API Template
 
-Welcome to the Fastify-Based NodeJS API Toolkit, a platform to create type-safe and well-documented web APIs using Fastify. The toolkit seamlessly integrates features like dependency injection, auto-generated documentation, auto-generated react-query client, and comprehensive logging.
+This is my Fastify-Based NodeJS API template, an attempt to create organized, type-safe, and well-documented APIs using Fastify.
+The architecture aims to seamlessly integrate features like dependency injection, auto-generated documentation, auto-generated [react-query](https://tanstack.com/query/v3/) client, and comprehensive logging.
 
 - [License](#license)
 - [Setup](#setup)
@@ -31,36 +32,43 @@ To start the server on port `8080` (or `process.env.PORT` if set):
 npm run dev
 ```
 
-The server setup is driven by the registrar located in src/server/index.ts.
+The server setup is driven by the registrar in [`src/index.ts`](./src/index.ts).
+
+### Viewing the Swagger Documentation
+
+To view the swagger documentation, navigate to `http://serverurl/docs/index.html#`.
+On localhost, this is [`http://localhost:8080/docs/index.html#`](http://localhost:8080/docs/index.html#).
 
 ### Client Generation
 
-To generate the react query client:
+To generate the [react-query](https://tanstack.com/query/v3/) client:
 
 ```bash
 npm run generateclient
 ```
 
-You can modify the client's output location in generate-client.ts.
+You can modify the client's output location in `generate-client.ts`. You will have to change the script in the [`package.json`](./package.json) file to match the new location.
 
 ## Usage
 
-A server is a collection of services, which are a collection of endpoints. Every endpoint is typed using [TypeBox](https://github.com/sinclairzx81/typebox), which type-checks all of your endpoints and is used by [fastify-swagger](https://github.com/fastify/fastify-swagger) to generate API documentation for you. Authentication is supported by registering an `IAuthenticationMethod` to the container.
+A server is a collection of services, which are a collection of endpoints. Every endpoint is typed using [typebox](https://github.com/sinclairzx81/typebox), which type-checks all of the endpoints and is used by [fastify-swagger](https://github.com/fastify/fastify-swagger) to generate API documentation for you. Authentication is supported by registering an `IAuthenticationMethod` to the dependency container.
 
 ## Architecture Overview
 
 This project was designed with the following goals:
 
-1. **Dependency Injection**: Easily inject dependencies into services.
-2. **Route Management**: Easily group and declare routes.
-3. **Documentation**: Auto-generate Swagger documentation.
-4. **Type Safety**: Ensure runtime type safety and validation for the API.
-5. **Logging**: Trace logs back to their originating request.
-6. **Authentication**: Easily enable / disable a routes authentication.
+1. [**Dependency Injection**](#easily-inject-dependencies---tsyringe): Easily inject dependencies into services, controllers, etc.
+2. [**Route Management**](#cleanly-group-and-declare-routes---service-structure): Easily group and declare routes.
+3. [**Documentation**](#auto-generated-documentation---fastify-swagger): Auto-generate Swagger documentation.
+4. [**Type Safety**](#runtime-type-safety-and-validation-for-the-api---typebox): Ensure runtime type safety and validation for the API.
+5. [**Logging**](#logging): Trace logs back to their originating request.
+6. [**Authentication**](#authentication): Easily enable / disable a routes authentication.
+7. **Client Generation**: Auto-generate a [react-query](https://tanstack.com/query/v3/) client for [`react`](https://react.dev/) apps.
+8. [**Testing**](#testing): Easily test the server.
 
 Below, we explore the solutions to these goals:
 
-### Easily Inject Dependencies - TSyringe
+### Easily Inject Dependencies - `tsyringe`
 
 This project uses [`tsyringe`](https://github.com/microsoft/tsyringe) for dependency injection. All singleton classes that are not registered to the container under the same token are decorated with `@singleton()`.
 This both registers the service as a singleton to the container and marks the service as injectable.
@@ -68,29 +76,38 @@ Singleton classes that are registered to the container under the same token valu
 
 ### Cleanly Group and Declare Routes - Service Structure
 
-Services are a collection of routes. Each service is a class decorated with `@Service('articles')`.
-Each route of a service is a class method decorated with `@HttpMethod('myRoute')`.
-Possible methods are `@Get`, `@Patch`, `@Post`, `@Put`, `@Delete`.
-The `@HttpMethod` decorators takes a path as an argument.
-The path is relative to the service's module path.
-The `@HttpMethod` decorator also takes an optional object as a second argument.
-This object defines whether the route is authenticated and the runtime validation schemas.
-It contains the following properties
+#### **Service Decorator**
+
+- Each service is represented as a class and is decorated with `@Service('serviceName')`.
+  - Example: `@Service('articles')` would denote a service related to articles.
+
+#### **Route Decorators**
+
+- Routes within a service are class methods that use specific HTTP method decorators.
+  - The available HTTP method decorators are: `@Get`, `@Patch`, `@Post`, `@Put`, and `@Delete`.
+- Route decorators accept:
+  - A path, which is relative to the service's module.
+    - Example: `@Get('/me')` inside of `@Service('articles')` would denote a route `GET /articles/me`.
+  - An optional configuration object that specifies route properties such as authentication and validation schemas.
+
+#### HttpMethod Configuration
+
+For the `@HttpMethod` decorator, the configuration object can contain:
 
 ```typescript
-// default export from `src/schemas/index.ts` that has all typebox schemas
+// Import of all typebox schemas from `src/schemas/index.ts`
 type TSchemas = typeof schemas;
 
 interface IRoute {
-  readonly auth: boolean;
-  readonly body?: Extract<keyof TSchemas, string> | null;
-  readonly params?: Extract<keyof TSchemas, string> | null;
-  readonly query?: Extract<keyof TSchemas, string> | null;
-  readonly response?: Extract<keyof TSchemas, string> | null;
+  readonly auth: boolean; // Indicates if route is authenticated
+  readonly body?: Extract<keyof TSchemas, string> | null; // Body validation schema
+  readonly params?: Extract<keyof TSchemas, string> | null; // URL parameters validation schema
+  readonly query?: Extract<keyof TSchemas, string> | null; // Query parameters validation schema
+  readonly response?: Extract<keyof TSchemas, string> | null; // Response validation schema
 }
 ```
 
-Example service:
+#### Example Service
 
 ```typescript
 // services/test.service.ts
@@ -103,6 +120,7 @@ import { Get, Post, Service, TypedRequest } from '@/server';
 @Service('test')
 export class TestService {
   constructor(private readonly _controller: Controller) {}
+  //          ^^ Injected dependency
 
   @Get('/me', {
     auth: true,
@@ -123,7 +141,7 @@ export class TestService {
 }
 ```
 
-This registers the route `GET /test/me` with query parameters `GetDataQueryParams` and response `GetDataResponse` (see [below](#runtime-type-safety-and-validation-for-the-api---typebox) for example declaration). The handler for the route is the async function `getData`. This service is made available to the server by registering it in the function `bootstrapServices` under `src/services/services.provider.ts` under the token `DI_TOKEN.SERVICE`:
+This registers the route `GET /test/me` with query parameters `GetDataQueryParams` and response `GetDataResponse` (see [below](#runtime-type-safety-and-validation-for-the-api---typebox) for example declaration). The handler for the route is the async function `getData`. This service is made available to the server by registering it in the function `bootstrapServices` in [`src/services/services.provider.ts`](./src/services/services.provider.ts) under the token [`DI_TOKEN.SERVICE`](./src/di.ts):
 
 ```typescript
 // src/services/services.provider.ts
@@ -138,15 +156,21 @@ const bootstrapService = () => {
 };
 ```
 
-### Auto Generated Documentation - Fastify Swagger
+### Auto Generated Documentation - `fastify-swagger`
 
-This project uses `fastify-swagger` to auto-generate swagger documentation. It is set up in `src/server/server.extensions.ts` in the `SwaggerExtension`. The Swagger documentation is auto generated from the typebox schemas.
+This project leverages [`fastify-swagger`](https://github.com/fastify/fastify-swagger) to automatically generate Swagger documentation based on the typebox schemas.
 
-The server has its routes registered as plugins by the `Registrar` in `server.registrar.ts` so that they are visible in the Swagger docs. The `Registrar` is a custom abstraction used to support this architecture.
+#### Setup and Configuration
 
-### Runtime Type Safety and Validation for the API - Typebox
+- **Location**: The `fastify-swagger` is configured in the `SwaggerExtension` located at [`src/server/server.extensions.ts`](./src/server/server.extensions.ts).
 
-This project uses `Typebox` for type validation. Schemas are defined in `/src/schemas`. These schemas are used to validate requests and responses. Example schema:
+- **Route Registration**: The server uses a [`Registrar`](./src/server/server.registrar.ts) to register routes as plugins. This ensures that the routes are correctly represented in the Swagger documentation.
+
+- **Note**: The [`Registrar`](./src/server/server.registrar.ts) is an abstraction designed to facilitate this specific architecture and its integration with the route registration, API type validation, and Swagger docs.
+
+### Runtime Type Safety and Validation for the API - `typebox``
+
+This project uses [`typebox`](https://github.com/sinclairzx81/typebox) for type validation. Schemas are defined in `/src/schemas`. These schemas are used to validate request route parameters, query parameters, bodies, and responses. Example schemas:
 
 ```typescript
 // src/schemas/test.ts
@@ -183,20 +207,29 @@ export default {
 
 ### Logging
 
-The logging system is setup of so that all logs are logged under the `traceId` of the request invoking the log. E.g., `/test/data` is invoked simultaneously by `user-1` and `user-2`. The request fails for `user-1` but succeeds for `user-2`.
-The logs would roughly look like:
+The logging system ensures that every log entry is associated with the traceId of the request triggering the log. This facilitates easy tracking of individual request execution flows.
+
+#### Sample Output
+
+When two users (e.g., user-1 and user-2) simultaneously invoke `/test/data`, the logs would resemble:
 
 ```bash
 [2023-08-16T18:56:00.000Z] INFO (traceId=req-1) - Request received
 [2023-08-16T18:56:00.002Z] INFO (traceId=req-2) - Request received
 [2023-08-16T18:56:00.100Z] INFO (traceId=req-2) - Request succeeded
-[2023-08-16T18:56:00.105Z] DEBUG (traceId=req-1) - Error in getData
+[2023-08-16T18:56:00.105Z] ERROR (traceId=req-1) - Error in getData
 [2023-08-16T18:56:00.110Z] INFO (traceId=req-1) - Request failed
 ```
 
-This is made possibly by `AsyncLocalStorage`. In the `onRequest` stage of the request lifecycle, the `TracingExtension` starts running our `ITracingStorage`. The `logger` generated by the `logger-factory` injects the same `ITracingStorage` and uses it to log the `traceId` of the request.
+#### Technical Implementation
 
-To add logging to a service, controller, or custom class, we simply inject the `LoggerFactory`. Logging is tied with the `traceId` of the request invoking the function. In the service example from earlier:
+- This is made possible by `AsyncLocalStorage`.
+- During the `onRequest` phase of a request's lifecycle, our `TracingExtension` initializes the `ITracingStorage`.
+- The `Logger`, crafted by the `LoggerFactory`, incorporates the `ITracingStorage` to log each request's traceId.
+
+#### How to Integrate Logging
+
+To infuse logging into any service, controller, or class, simply inject the `LoggerFactory`. All logs will align with the `traceId` of the triggering request.
 
 ```typescript
 // services/test.service.ts
@@ -209,13 +242,13 @@ import { Get, Post, Service, TypedRequest } from '@/server';
 @injectable()
 @Service('test')
 export class TestService {
-  private _logger = this._loggerFactory.getLogger('TestService');
+  private readonly _logger: Logger;
 
   constructor(
     private readonly _controller: Controller,
     private readonly _loggerFactory: LoggerFactory
   ) {
-    this._logger = this._loggerFactory.getLogger('TestService');
+    this._logger = this._loggerFactory.createLogger('TestService');
   }
 
   @Get('/', {
@@ -241,7 +274,13 @@ export class TestService {
 
 #### Logging Decorator
 
-To add quick logging to a function, we can use the `log` decorator. This decorator takes an optional input `{ successMessage, errorMessage }`. This decorator will add logging around the function in the case of success and error. The `successMessage` and `errorMessage` are optional and default to `Successfully completed functionName` and `error.message`, respectively. Success logs are `debug` level, and error logs are `error` level. All logs will be logged under the `traceId` of the request invoking the function. Example:
+For a quick logging integration, utilize the `@log()` decorator. This decorator optionally accepts `{ successMessage, errorMessage }`, which default to `"Successfully completed functionName"` and `error.message`, respectively.
+
+- Success Logs: These are of debug level.
+- Error Logs: These are of error level.
+- All logs correspond to the traceId of the initiating request.
+
+##### Decorator Example
 
 ```typescript
 // external-services/mongodb/test.controller.ts
@@ -266,23 +305,87 @@ export class TestController {
 }
 ```
 
-This lets us add debug and error logs to our log dump on error and is useful for being able to trace back to the point of application failure. For lower level logging, we can use the logger factory as shown above.
+These logs are crucial for tracing back to potential points of application failure. For more granular logging needs, utilize the logger factory as demonstrated above.
 
 ### Authentication
 
-To set up authentication, we need to specify the `authenticate` method of the `IAuthenticationMethod` registered to the container in `src/index.ts`. All routes marked with `auth: true` will require the `authenticate` function to move the request past the `preHandler` stage of the request lifecycle.
+The project incorporates authentication via the `authenticate` method, which belongs to the `IAuthenticationMethod` interface. This method is essential for controlling access to your routes.
+
+#### Configuration Steps
+
+1. **Registration**: Register the `IAuthenticationMethod` to the container. You can find this registration to the container in [`src/index.ts`](./src/index.ts).
+
+2. **Route Access Control**: Routes with the `auth: true` property necessitate successful authentication. These routes will only advance beyond the `preHandler` phase of the request lifecycle if the `authenticate` function is executed successfully.
+
+#### Sample Configuration
 
 ```typescript
+// Registering the IAuthenticationMethod to the container
 container.register<IAuthenticationMethod>(DI_TOKEN.AUTHENTICATION, {
   useValue: { authenticate: undefined },
 });
 ```
 
+This configuration ensures that the specified routes have an added layer of security.
+
+### Testing
+
+The project incorporates [`jest`](https://jestjs.io/docs/es6-class-mocks) and [`jest-mock-extended`](https://www.npmjs.com/package/jest-mock-extended) for creating and running tests.
+
+- **Configuration**: Ensure the path aliases are correctly registered in [`jest.config.js`](./jest.config.js).
+
+- **Test Location**: All tests are situated in the `tests/` directory. This structure mirrors the `src/` directory.
+
+#### Sample Tests
+
+##### **Test with Mocks**
+
+Using `jest-mock-extended` allows for easy mock creation without manually defining every mock property or method.
+
+```typescript
+// File: test/services/test.service.test.ts
+import 'reflect-metadata';
+import { TestService } from '@/services';
+import { mock } from 'jest-mock-extended';
+
+describe('TestService', () => {
+  // Mocking the TestService class
+  const mockedTestService = mock<TestService>();
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('should run a mocked method correctly', () => {
+    // Add your mock configurations and tests here
+  });
+});
+```
+
+##### **Test without Mocks**
+
+For cases where we don't require mocks and want to test the real implementation:
+
+```typescript
+// File: test/external-services/mongodb/controller.test.ts
+import 'reflect-metadata';
+import { TestController } from '@/external-services';
+
+describe('TestController', () => {
+  it('should run a method correctly', () => {
+    const controller = new TestController(/* dependencies if any */);
+    // Add your test assertions and checks here
+  });
+});
+```
+
 ## Managing Complex Services
 
-In situations where a service contains intricate routes, it's useful to separate concerns for clarity and maintainability. Here are a couple of patterns to manage such scenarios:
+As the number of routes in a service grows, and their logic becomes more involved, it can lead to bulky service classes. To maintain clarity and ensure services are easier to manage, consider the following approaches:
 
 ### Mediator Design Pattern for Route Handling
+
+With this approach, you encapsulate route logic in separate handler classes. The service then relies on a handler factory to get the appropriate handler for each route.
 
 ```typescript
 // services/advanced/advanced.service.ts
@@ -363,7 +466,9 @@ export class AdvancedServiceHandlerFactory implements IAdvancedServiceHandlerFac
 
 ### Multiple Service Classes
 
-Another possible pattern is to instead create a `Service` class for each route - all under the same module name. E.g.:
+For situations with distinct sets of routes, you can split them across multiple service classes. All these services can exist under the same module name, ensuring that they remain part of the same logical group.
+
+#### Split Services Under One Module
 
 ```typescript
 // services/advanced/advanced-handler.service.ts
@@ -411,10 +516,14 @@ export class AdvancedHandlerServiceTwo {
       response: 'GetAdvancedHandlerTwoResponse';
     }>
   ) {
-    // complex implementation two
+    // implement complex route here
   }
 }
+```
 
+To make sure services are discoverable and initialized correctly, register them in the [services provider](./src/services//services.provider.ts):
+
+```typescript
 // src/services/services.provider.ts
 import { container } from 'tsyringe';
 
@@ -431,8 +540,10 @@ const bootstrapService = () => {
 };
 ```
 
+By splitting routes intelligently or encapsulating route logic in handlers, you can make sure services are easier to understand, manage, and extend in the future.
+
 ## Conclusion
 
-This toolkit provides a robust foundation for creating a well-structured Fastify-based NodeJS API. With features like dependency injection, auto-documentation, and advanced logging, developers can focus more on building the actual API logic and less on boilerplate setup.
+This architecture tries to offer a well-structured and simple way to develop Fastify-based NodeJS APIs. It goes beyond the simplicity of framework usage, integrating features like dependency injection, auto-generated documentation, route authentication, and comprehensive logging. These features shift the focus from getting caught up in the intricacies of setup to instead honing in on building efficient, impactful, and innovative API functionalities.
 
-For further exploration, consider checking out the [Fastify documentation](https://www.fastify.io/docs/), [tsyringe](https://github.com/microsoft/tsyringe), [fastify-swagger](https://github.com/fastify/fastify-swagger), and [TypeBox GitHub](https://github.com/sinclairzx81/typebox).
+To truly harness the power of this template and expand on its capabilities, diving deeper into the [Fastify documentation](https://www.fastify.io/docs/), exploring the utility of [tsyringe](https://github.com/microsoft/tsyringe), understanding the magic behind [fastify-swagger](https://github.com/fastify/fastify-swagger), and getting a grasp on [typebox](https://github.com/sinclairzx81/typebox) are strongly recommended.
