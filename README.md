@@ -1,6 +1,6 @@
 # Fastify-Based NodeJS API Toolkit
 
-This toolkit provides an efficient, typed, and well-documented web API setup using Fastify, complete with dependency injection, auto-generated documentation, and extensive logging.
+Welcome to the Fastify-Based NodeJS API Toolkit, a platform to create type-safe and well-documented web APIs using Fastify. The toolkit seamlessly integrates features like dependency injection, auto-generated documentation, auto-generated react-query client, and comprehensive logging.
 
 - [License](#license)
 - [Setup](#setup)
@@ -11,13 +11,37 @@ This toolkit provides an efficient, typed, and well-documented web API setup usi
 
 ## License
 
-Duel licensed under the [MIT License](./LICENSE.md) and the [Apache License 2.0](./LICENSE-APACHE-2.md), at your option. This repository, or any subset of its contents, may not be copied, modified, or distributed except according to those terms.
+This work is duel licensed under the [MIT License](./LICENSE.md) and the [Apache License 2.0](./LICENSE-APACHE-2.md). You're free to choose the one that suits your project. Please ensure all uses, modifications, and distributions comply with the chosen license's terms.
 
 ## Setup
 
-Run `npm install` to install the dependencies. Use `npm run dev` to start the server. This runs the server setup by the `registrar` in `src/server/index.ts` on port 8080.
+### Installation
 
-Generate the react query client by running `npm run generateclient`. Edit the location of the generated client in `generate-client.ts`.
+Install all the required dependencies
+
+```bash
+npm install
+```
+
+### Running the Server
+
+To start the server on port `8080` (or `process.env.PORT` if set):
+
+```bash
+npm run dev
+```
+
+The server setup is driven by the registrar located in src/server/index.ts.
+
+### Client Generation
+
+To generate the react query client:
+
+```bash
+npm run generateclient
+```
+
+You can modify the client's output location in generate-client.ts.
 
 ## Usage
 
@@ -27,7 +51,7 @@ A server is a collection of services, which are a collection of endpoints. Every
 
 This project was designed with the following goals:
 
-1. **Dependency Injection**: Easily inject dependencies using TSyringe.
+1. **Dependency Injection**: Easily inject dependencies into services.
 2. **Route Management**: Easily group and declare routes.
 3. **Documentation**: Auto-generate Swagger documentation.
 4. **Type Safety**: Ensure runtime type safety and validation for the API.
@@ -38,13 +62,14 @@ Below, we explore the solutions to these goals:
 
 ### Easily Inject Dependencies - TSyringe
 
-This project uses [`TSyringe`](https://github.com/microsoft/tsyringe) for dependency injection. All singleton classes that do not share a token are decorated with `@singleton()`. This both registers the service as a singleton to the container and marks the service as injectable.
-Singleton classes that share tokens, like services, are marked with just `@injectable()` when they must inject their dependencies
+This project uses [`tsyringe`](https://github.com/microsoft/tsyringe) for dependency injection. All singleton classes that are not registered to the container under the same token are decorated with `@singleton()`.
+This both registers the service as a singleton to the container and marks the service as injectable.
+Singleton classes that are registered to the container under the same token values, like services, are marked with just `@injectable()` when they must inject their dependencies.
 
 ### Cleanly Group and Declare Routes - Service Structure
 
 Services are a collection of routes. Each service is a class decorated with `@Service('articles')`.
-Each route is a method decorated with `@HttpMethod('myRoute')`.
+Each route of a service is a class method decorated with `@HttpMethod('myRoute')`.
 Possible methods are `@Get`, `@Patch`, `@Post`, `@Put`, `@Delete`.
 The `@HttpMethod` decorators takes a path as an argument.
 The path is relative to the service's module path.
@@ -79,7 +104,7 @@ import { Get, Post, Service, TypedRequest } from '@/server';
 export class TestService {
   constructor(private readonly _controller: Controller) {}
 
-  @Get('/', {
+  @Get('/me', {
     auth: true,
     query: 'GetDataQueryParams',
     response: 'GetDataResponse',
@@ -98,7 +123,7 @@ export class TestService {
 }
 ```
 
-This registers the route `/test` with runtime validated query parameters and response as defined in `src/server/schemas`. The handler for response is the async function `getData`. This service would be made available to our server by registering it in the function `bootstrapServices` under `src/services/services.provider.ts` under the token `DI_TOKEN.SERVICE`:
+This registers the route `GET /test/me` with query parameters `GetDataQueryParams` and response `GetDataResponse` (see [below](#runtime-type-safety-and-validation-for-the-api---typebox) for example declaration). The handler for the route is the async function `getData`. This service is made available to the server by registering it in the function `bootstrapServices` under `src/services/services.provider.ts` under the token `DI_TOKEN.SERVICE`:
 
 ```typescript
 // src/services/services.provider.ts
@@ -115,7 +140,9 @@ const bootstrapService = () => {
 
 ### Auto Generated Documentation - Fastify Swagger
 
-This project uses `Fastify` as a web server. The server has its routes registered by the `Registrar` in `server.registrar.ts`. This is a custom abstraction used to support this architecture. OpenAPI swagger documentation is auto generated from the typebox schemas.
+This project uses `fastify-swagger` to auto-generate swagger documentation. It is set up in `src/server/server.extensions.ts` in the `SwaggerExtension`. The Swagger documentation is auto generated from the typebox schemas.
+
+The server has its routes registered as plugins by the `Registrar` in `server.registrar.ts` so that they are visible in the Swagger docs. The `Registrar` is a custom abstraction used to support this architecture.
 
 ### Runtime Type Safety and Validation for the API - Typebox
 
@@ -169,7 +196,7 @@ The logs would roughly look like:
 
 This is made possibly by `AsyncLocalStorage`. In the `onRequest` stage of the request lifecycle, the `TracingExtension` starts running our `ITracingStorage`. The `logger` generated by the `logger-factory` injects the same `ITracingStorage` and uses it to log the `traceId` of the request.
 
-To add logging to a service, we simply inject the `LoggerFactory` and logging is automatically done with the `traceId` of the request. In the service example from earlier:
+To add logging to a service, controller, or custom class, we simply inject the `LoggerFactory`. Logging is tied with the `traceId` of the request invoking the function. In the service example from earlier:
 
 ```typescript
 // services/test.service.ts
@@ -218,7 +245,8 @@ To set up authentication, we need to specify the `authenticate` method of the `I
 
 ```typescript
 container.register<IAuthenticationMethod>(DI_TOKEN.AUTHENTICATION, {
-  useValue: { authenticate: undefined });
+  useValue: { authenticate: undefined },
+});
 ```
 
 ## Managing Complex Services
