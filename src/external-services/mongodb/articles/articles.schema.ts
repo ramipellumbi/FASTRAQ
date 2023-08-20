@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-import { IArticle } from '@/schemas/articles';
+import { IArticle, TAGS } from '@/schemas/articles';
 
 const { Schema } = mongoose;
 
@@ -25,15 +25,18 @@ const ArticleSchema = new Schema<IArticle>({
   tags: [
     {
       type: String,
-      trim: true,
+      enum: TAGS,
+      required: true,
     },
   ],
   createdAt: {
     type: Date,
+    required: true,
     default: Date.now,
   },
   updatedAt: {
     type: Date,
+    required: true,
     default: Date.now,
   },
 });

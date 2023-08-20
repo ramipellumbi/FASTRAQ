@@ -2,7 +2,7 @@ import { Static, Type } from '@sinclair/typebox';
 
 import { Schema, StringEnum } from './util';
 
-const Tag = StringEnum('Tag', [
+export const TAGS = [
   'JavaScript',
   'Machine Learning',
   'Nutrition',
@@ -11,7 +11,9 @@ const Tag = StringEnum('Tag', [
   'Movies',
   'Personal Finance',
   'Fashion',
-] as const);
+] as const;
+
+const Tag = StringEnum('Tag', TAGS);
 
 const Article = Schema('IArticle', {
   author: Type.String(),
