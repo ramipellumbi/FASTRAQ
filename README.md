@@ -218,7 +218,7 @@ This project leverages [`fastify-swagger`](https://github.com/fastify/fastify-sw
 
 - **Note**: The [`Registrar`](./src/server/server.registrar.ts) is an abstraction designed to facilitate this specific architecture and its integration with the route registration, API type validation, and Swagger docs.
 
-### Runtime Type Safety and Validation for the API - `typebox``
+### Runtime Type Safety and Validation for the API - `typebox`
 
 This project uses [`typebox`](https://github.com/sinclairzx81/typebox) for type validation. Schemas are defined in `/src/schemas`. These schemas are used to validate request route parameters, query parameters, bodies, and responses. Example schemas:
 
