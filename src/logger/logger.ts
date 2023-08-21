@@ -64,6 +64,7 @@ export class Logger implements ILogger {
           traceId: this._storage.traceId,
         });
       });
+    this._cache.remove(this._storage.traceId);
   }
 
   public dumpAllLogs(): void {
@@ -75,6 +76,7 @@ export class Logger implements ILogger {
         traceId: this._storage.traceId,
       });
     });
+    this._cache.remove(this._storage.traceId);
   }
   private _logToCache(level: LogLevel, messages: string[]): void {
     this._cache.add({

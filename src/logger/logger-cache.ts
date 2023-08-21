@@ -12,6 +12,7 @@ type ILog = {
 
 export interface ILoggerCache {
   add(log: ILog): void;
+  remove(traceId: string): void;
   get(traceId: string): Array<ILog>;
 }
 
@@ -49,6 +50,16 @@ export class LoggerCache implements ILoggerCache {
         messages.shift();
       }
       messages.push({ ...log });
+    }
+  }
+
+  remove(traceId: string): void {
+    const didDelete = this._cache.delete(traceId);
+    if (didDelete) {
+      const index = this._queue.indexOf(traceId);
+      if (index >= 0) {
+        this._queue.splice(index, 1);
+      }
     }
   }
 
