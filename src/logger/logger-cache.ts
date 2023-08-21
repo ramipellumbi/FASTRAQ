@@ -17,6 +17,11 @@ export interface ILoggerCache {
 
 @singleton()
 export class LoggerCache implements ILoggerCache {
+  // maximum number of requests to cache
+  private readonly _MAX_CACHE_SIZE = 50;
+  // maximum number of messages to cache per request
+  private readonly _MAX_MESSAGES_PER_TRACE = 25;
+
   private readonly _cache: Map<string, Array<ILog>>;
   private readonly _queue: Array<string>;
 
@@ -29,7 +34,7 @@ export class LoggerCache implements ILoggerCache {
     const traceId = this._storage.traceId;
 
     if (!this._cache.has(traceId)) {
-      if (this._cache.size >= 100) {
+      if (this._cache.size >= this._MAX_CACHE_SIZE) {
         const oldestTraceId = this._queue.shift();
         if (!oldestTraceId) return;
         this._cache.delete(oldestTraceId);
@@ -40,6 +45,9 @@ export class LoggerCache implements ILoggerCache {
     } else {
       const messages = this._cache.get(traceId);
       if (!messages) return;
+      if (messages.length >= this._MAX_MESSAGES_PER_TRACE) {
+        messages.shift();
+      }
       messages.push({ ...log });
     }
   }
