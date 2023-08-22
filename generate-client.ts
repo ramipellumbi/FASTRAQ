@@ -1,8 +1,10 @@
+import 'reflect-metadata';
+
 import dotenv from 'dotenv';
 import fs from 'fs';
 import orval from 'orval';
 
-import { bootstrapContainer } from './src/index';
+import { bootstrapContainer } from './src/container';
 
 const OPENAPI_PATH = './openapi.tmp.json';
 

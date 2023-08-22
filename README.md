@@ -32,7 +32,7 @@ To start the server on port `8080` (or `process.env.PORT` if set):
 npm run dev
 ```
 
-The server setup is driven by the registrar in [`src/index.ts`](./src/index.ts).
+The server setup is driven by the [registrar](./src/server/server.registrar.ts), which is resolved in [`src/container.ts`](./src/container.ts).
 
 ### Viewing the Swagger Documentation
 
@@ -370,7 +370,7 @@ The project incorporates authentication via the `authenticate` method, which bel
 
 #### Configuration Steps
 
-1. **Registration**: Register the `IAuthenticationMethod` to the container. You can find this registration to the container in [`src/index.ts`](./src/index.ts).
+1. **Registration**: Register the `IAuthenticationMethod` to the container. You can find this registration to the container in [`src/container.ts`](./src/container.ts).
 
 2. **Route Access Control**: Routes with the `auth: true` property necessitate successful authentication. These routes will only advance beyond the `preHandler` phase of the request lifecycle if the `authenticate` function is executed successfully.
 
