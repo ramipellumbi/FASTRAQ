@@ -1,6 +1,6 @@
-# Fastify-Based NodeJS API Template
+# FASTRAQ
 
-This is my Fastify-Based NodeJS API template, an attempt to create organized, type-safe, and well-documented APIs using Fastify.
+FASTRAQ (pronounced fast track) is an attempt to create organized, type-safe, and well-documented APIs using Fastify.
 The architecture aims to seamlessly integrate features like dependency injection, auto-generated documentation, auto-generated [react-query](https://tanstack.com/query/v3/) client, and comprehensive logging.
 
 - [License](#license)
@@ -601,6 +601,6 @@ By splitting routes intelligently or encapsulating route logic in handlers, you 
 
 ## Conclusion
 
-This architecture tries to offer a well-structured and simple way to develop Fastify-based NodeJS APIs. It goes beyond the simplicity of framework usage, integrating features like dependency injection, auto-generated documentation, route authentication, and comprehensive logging. These features shift the focus from getting caught up in the intricacies of setup to instead honing in on building efficient, impactful, and innovative API functionalities.
+FASTRAQ tries to offer a well-structured and simple way to develop Fastify-based NodeJS APIs. It goes beyond the simplicity of framework usage, integrating features like dependency injection, auto-generated documentation, route authentication, and comprehensive logging. These features shift the focus from getting caught up in the intricacies of setup to instead honing in on building efficient, impactful, and innovative API functionalities.
 
 To truly harness the power of this template and expand on its capabilities, diving deeper into the [Fastify documentation](https://www.fastify.io/docs/), exploring the utility of [tsyringe](https://github.com/microsoft/tsyringe), understanding the magic behind [fastify-swagger](https://github.com/fastify/fastify-swagger), and getting a grasp on [typebox](https://github.com/sinclairzx81/typebox) are strongly recommended.
