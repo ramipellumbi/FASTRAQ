@@ -7,7 +7,7 @@ import { IAuthenticationMethod, IRouteConfig } from './server.types';
 import { Schemas } from './server.types';
 
 import { DI_TOKEN } from '@/di';
-import { ILogger, LoggerFactory } from '@/logger';
+import { LoggerFactory } from '@/logger';
 
 interface IRegistrar {
   server: FastifyInstance;
@@ -82,36 +82,17 @@ export class Registrar implements IRegistrar {
             },
             url,
             handler: async (request, reply) => {
-              let logger: ILogger | undefined;
+              const { logger } = request;
+              logger.info('Request received.');
 
-              try {
-                logger = this._loggerFactory.createLogger(
-                  request.method + ' ' + request.routerPath
-                );
-                logger.info('Request received.');
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const instance: any = container.resolve(service.constructor);
+              const method = instance[route.schema.operationId];
 
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const instance: any = container.resolve(service.constructor);
-                const method = instance[route.schema.operationId];
-
-                const result = await method.call(instance, request);
-                logger.info('Request Succeeded.');
-                logger.dumpInfoLogs();
-                reply.code(200).send(result);
-              } catch (e) {
-                if (logger) {
-                  if (e instanceof Error) {
-                    logger.error(e.message);
-                  }
-                  logger.dumpAllLogs();
-                }
-
-                if (e instanceof Error) {
-                  reply.code(500).send({ detail: e.message });
-                } else {
-                  reply.code(500).send({ detail: 'Unknown Erro' });
-                }
-              }
+              const result = await method.call(instance, request);
+              logger.info('Request Succeeded.');
+              logger.dumpInfoLogs();
+              reply.code(200).send(result);
             },
           });
         });

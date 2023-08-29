@@ -1,5 +1,4 @@
 {
-  "type": "module",
   "dependencies": {
     "@fastify/swagger": "^8.3.1",
     "@fastify/swagger-ui": "^1.8.1",

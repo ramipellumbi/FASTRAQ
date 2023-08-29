@@ -21,6 +21,7 @@
     "paths": {
       "@/di": ["src/di.ts"],
       "@/decorators": ["src/decorators.ts"],
+      "@/errors": ["src/errors.ts"],
       "@/logger": ["src/logger"],
       "@/mongodb": ["src/external-services/mongodb"],
       "@/schemas": ["src/schemas"],

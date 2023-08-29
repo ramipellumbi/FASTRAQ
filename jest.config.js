@@ -13,6 +13,7 @@ const config = {
     '^(\\.{1,2}/.*)\\.jsx?$': '$1',
     '^@/decorators': '<rootDir>/src/decorators.ts',
     '^@/di': '<rootDir>/src/di.ts',
+    '^@/errors': ['<rootDir>/src/errors.ts'],
     '^@/logger': '<rootDir>/src/logger',
     '^@/mongodb': '<rootDir>/src/external-services/mongodb',
     '^@/schemas': '<rootDir>/src/schemas',
@@ -22,4 +23,4 @@ const config = {
   },
 };
 
-export default config;
+module.exports = config;
