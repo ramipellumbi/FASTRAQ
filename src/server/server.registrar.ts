@@ -74,7 +74,7 @@ export class Registrar implements IRegistrar {
             ...route,
             ...(route.auth === true &&
               this._authenticator.authenticate && {
-                preHandler: this._authenticator.authenticate,
+                preParsing: this._authenticator.authenticate,
               }),
             schema: {
               ...route.schema,
