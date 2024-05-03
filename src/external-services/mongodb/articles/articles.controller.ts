@@ -5,17 +5,17 @@ import { IArticleModel } from './articles.schema';
 
 import { log } from '@/decorators';
 import { EXTERNAL_SERVICE_TOKEN } from '@/di';
-import { GetArticlesQueryParams, IArticle } from '@/schemas/articles';
+import { TArticle, TGetArticlesQueryParams } from '@/schemas/articles';
 
 @singleton()
 export class ArticlesController {
   constructor(@inject(EXTERNAL_SERVICE_TOKEN.MONGO_MODEL) private readonly _model: IArticleModel) {}
 
   @log()
-  public async getArticles(query: GetArticlesQueryParams): Promise<IArticle[]> {
+  public async getArticles(query: TGetArticlesQueryParams): Promise<TArticle[]> {
     const { author, title, tags } = query;
 
-    const mongoQuery: FilterQuery<IArticle> = {};
+    const mongoQuery: FilterQuery<TArticle> = {};
 
     if (author) {
       mongoQuery['author'] = author;
@@ -29,7 +29,7 @@ export class ArticlesController {
       mongoQuery['tags'] = { $in: tags };
     }
 
-    const articles = await this._model.find<IArticle>(mongoQuery);
+    const articles = await this._model.find<TArticle>(mongoQuery);
 
     return articles;
   }
