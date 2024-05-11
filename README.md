@@ -16,12 +16,14 @@ This work is duel licensed under the [MIT License](./LICENSE.md) and the [Apache
 
 ## Setup
 
+This setup assumes you have [Node.js](https://nodejs.org/en/) and [pnpm](https://pnpm.io/) installed.
+
 ### Installation
 
 Install all the required dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### Running the Server
@@ -29,7 +31,7 @@ npm install
 To start the server on port `8080` (or `process.env.PORT` if set):
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 The server setup is driven by the [registrar](./src/server/server.registrar.ts), which is resolved in [`src/container.ts`](./src/container.ts).
@@ -44,7 +46,7 @@ On localhost, this is [`http://localhost:8080/docs/index.html#`](http://localhos
 To generate the [react-query](https://tanstack.com/query/v3/) client:
 
 ```bash
-npm run generateclient
+pnpm run generateclient
 ```
 
 You can modify the client's output location in `generate-client.ts`. You will have to change the script in the [`package.json`](./package.json) file to match the new location.

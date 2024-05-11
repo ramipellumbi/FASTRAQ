@@ -1,8 +1,8 @@
 import swagger, { SwaggerOptions } from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
 import { FastifyInstance } from 'fastify';
-import { nanoid } from 'nanoid';
 import { container, inject, singleton } from 'tsyringe';
+import { v4 as uuidv4 } from 'uuid';
 
 import { DI_TOKEN } from '@/di';
 import { HTTPError } from '@/errors';
@@ -95,7 +95,8 @@ class TracingExtension implements IServerExtension {
 
   public setup() {
     this._server.addHook('onRequest', (request, _reply, done) => {
-      const traceId = nanoid(12);
+      // create uuid
+      const traceId = uuidv4();
       request.traceId = traceId;
       this._storage.run(traceId, done);
     });

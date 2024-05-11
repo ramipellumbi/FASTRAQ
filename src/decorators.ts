@@ -6,16 +6,13 @@ type LogDecoratorParams = {
   successMessage?: string;
   errorMessage?: string;
   logArgs?: boolean;
+  logResponse?: boolean;
 };
 
 export function log(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   this: any,
-  messages: LogDecoratorParams = {
-    successMessage: '',
-    errorMessage: '',
-    logArgs: true,
-  }
+  messages: LogDecoratorParams = {}
 ) {
   return (
     _target: unknown,
@@ -62,7 +59,7 @@ function logResult(logger: ILogger, messages: LogDecoratorParams, result: any) {
   logger.debug(
     messages.successMessage || 'Successfully completed',
     'result:',
-    JSON.stringify(result)
+    messages.logResponse ? JSON.stringify(result) : 'Response Omitted'
   );
 }
 
@@ -72,7 +69,7 @@ function logError(logger: ILogger, messages: LogDecoratorParams, error: Error, a
   logger.error(
     messages.errorMessage || error.message,
     'params:',
-    shouldLogArgs ? JSON.stringify(args) : ''
+    shouldLogArgs ? JSON.stringify(args) : 'Params Omitted'
   );
 }
 
