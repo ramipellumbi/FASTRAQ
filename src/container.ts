@@ -2,7 +2,6 @@ import fastify, { FastifyInstance } from "fastify";
 import { container } from "tsyringe";
 
 import { DI_TOKEN, EXTERNAL_SERVICE_TOKEN } from "./di";
-import { ArticleModel, IArticleModel } from "./external-services/mongodb/articles";
 import schemas from "./schemas";
 import { IAuthenticationMethod, Schemas } from "./server";
 import bootstrapExtensions from "./server/server.extensions";
@@ -18,9 +17,6 @@ export const bootstrapContainer = (): FastifyInstance => {
     useValue: {
       authenticate: undefined,
     },
-  });
-  container.register<IArticleModel>(EXTERNAL_SERVICE_TOKEN.MONGO_MODEL, {
-    useValue: ArticleModel,
   });
 
   bootstrapExtensions();

@@ -1,14 +1,14 @@
 import { Type } from "@sinclair/typebox";
 
 import { Schema, StringEnum } from "../util";
-import { TAGS } from "./constants";
 
 const DatabaseDate = Type.Unsafe<Date>({
   type: "string",
   format: "date-time",
 });
 
-export const Tag = StringEnum("Tag", TAGS);
+// purely illustrative of using the provided utils -- not used in the hello service
+export const Tag = StringEnum("Tag", ["JavaScript", "TypeScript", "Node.js"] as const);
 
 export const Article = Schema("Article", {
   author: Type.String(),

@@ -1,9 +1,9 @@
 import { container } from "tsyringe";
 
-import { ArticlesService } from "./articles.service";
+import { HelloService } from "./hello.service";
 
 import { DI_TOKEN } from "@/di";
 
 export const bootstrapServices = () => {
-  container.registerSingleton<ArticlesService>(DI_TOKEN.SERVICE, ArticlesService);
+  container.registerSingleton<HelloService>(DI_TOKEN.SERVICE, HelloService);
 };

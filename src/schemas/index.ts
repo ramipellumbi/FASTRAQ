@@ -1,7 +1,7 @@
-import articles from "./articles";
+import hello from "./hello";
 
 const schemas = {
-  ...articles,
+  ...hello,
 };
 
 export type TSchemas = typeof schemas;
