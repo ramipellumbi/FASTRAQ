@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-import { TAGS, TArticle } from '@/schemas/articles';
+import { TAGS, TArticle } from "@/schemas/articles";
 
 const { Schema } = mongoose;
 
@@ -41,5 +41,5 @@ const ArticleSchema = new Schema<TArticle>({
   },
 });
 
-export const ArticleModel = mongoose.model<TArticle>('Articles', ArticleSchema);
+export const ArticleModel = mongoose.model<TArticle>("Articles", ArticleSchema);
 export type IArticleModel = typeof ArticleModel;

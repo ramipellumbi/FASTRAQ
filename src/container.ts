@@ -1,13 +1,13 @@
-import fastify, { FastifyInstance } from 'fastify';
-import { container } from 'tsyringe';
+import fastify, { FastifyInstance } from "fastify";
+import { container } from "tsyringe";
 
-import { DI_TOKEN, EXTERNAL_SERVICE_TOKEN } from './di';
-import { ArticleModel, IArticleModel } from './external-services/mongodb/articles';
-import schemas from './schemas';
-import { IAuthenticationMethod, Schemas } from './server';
-import bootstrapExtensions from './server/server.extensions';
-import { Registrar } from './server/server.registrar';
-import { bootstrapServices } from './services';
+import { DI_TOKEN, EXTERNAL_SERVICE_TOKEN } from "./di";
+import { ArticleModel, IArticleModel } from "./external-services/mongodb/articles";
+import schemas from "./schemas";
+import { IAuthenticationMethod, Schemas } from "./server";
+import bootstrapExtensions from "./server/server.extensions";
+import { Registrar } from "./server/server.registrar";
+import { bootstrapServices } from "./services";
 
 export const bootstrapContainer = (): FastifyInstance => {
   container.register<FastifyInstance>(DI_TOKEN.FASTIFY, {

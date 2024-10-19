@@ -1,12 +1,12 @@
-import 'reflect-metadata';
+import "reflect-metadata";
 
-import dotenv from 'dotenv';
-import fs from 'fs';
-import orval from 'orval';
+import dotenv from "dotenv";
+import fs from "node:fs";
+import orval from "orval";
 
-import { bootstrapContainer } from './src/container';
+import { bootstrapContainer } from "./src/container";
 
-const OPENAPI_PATH = './openapi.tmp.json';
+const OPENAPI_PATH = "./openapi.tmp.json";
 
 dotenv.config();
 
@@ -19,15 +19,12 @@ async function generateClient() {
   await orval({
     input: OPENAPI_PATH,
     output: {
-      client: 'react-query',
-      workspace: '../client/src/generated_client',
-      schemas: './models',
-      target: './client',
-      mode: 'tags-split',
+      client: "react-query",
+      workspace: "../client/src/generated_client",
+      schemas: "./models",
+      target: "./client",
+      mode: "tags-split",
       prettier: true,
-    },
-    hooks: {
-      afterAllFilesWrite: ['prettier --write', 'eslint --fix ../client/src/'],
     },
   });
   await fs.promises.unlink(OPENAPI_PATH);

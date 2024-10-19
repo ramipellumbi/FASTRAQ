@@ -1,13 +1,13 @@
-import { FastifyInstance } from 'fastify';
-import { container, inject, injectAll, singleton } from 'tsyringe';
+import { FastifyInstance } from "fastify";
+import { container, inject, injectAll, singleton } from "tsyringe";
 
-import { MODULE_META_DATA_KEY, ROUTES_META_DATA_KEY } from './server.decorators';
-import { IServerExtension } from './server.extensions';
-import { IAuthenticationMethod, IRouteConfig } from './server.types';
-import { Schemas } from './server.types';
+import { MODULE_META_DATA_KEY, ROUTES_META_DATA_KEY } from "./server.decorators";
+import { IServerExtension } from "./server.extensions";
+import { IAuthenticationMethod, IRouteConfig } from "./server.types";
+import { Schemas } from "./server.types";
 
-import { DI_TOKEN } from '@/di';
-import { LoggerFactory } from '@/logger';
+import { DI_TOKEN } from "@/di";
+import { LoggerFactory } from "@/logger";
 
 interface IRegistrar {
   server: FastifyInstance;
@@ -24,9 +24,9 @@ export class Registrar implements IRegistrar {
     @inject(DI_TOKEN.SCHEMAS) private readonly _schemas: Schemas,
     @injectAll(DI_TOKEN.SERVER_EXTENSION)
     private readonly _extensions: IServerExtension[],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: need any
     @injectAll(DI_TOKEN.SERVICE) private readonly _services: any[],
-    private readonly _loggerFactory: LoggerFactory
+    private readonly _loggerFactory: LoggerFactory,
   ) {
     this._registerExtensions();
     this._registerSchemas();
@@ -54,22 +54,20 @@ export class Registrar implements IRegistrar {
       const routes: IRouteConfig[] = Reflect.getMetadata(ROUTES_META_DATA_KEY, service.constructor);
       const module: string = Reflect.getMetadata(MODULE_META_DATA_KEY, service.constructor);
       if (!module) {
-        throw new Error(
-          'A controller must be decorated with @Controller and specify the module name.'
-        );
+        throw new Error("A controller must be decorated with @Controller and specify the module name.");
       }
-      if (typeof module !== 'string') {
-        throw new Error('Module name of controller must be a string.');
+      if (typeof module !== "string") {
+        throw new Error("Module name of controller must be a string.");
       }
 
       this._server.register((server, _opts, done) => {
-        routes.forEach((route) => {
+        for (const route of routes) {
           if (this._ROUTES.includes(route.schema.operationId)) {
             throw new Error(`Duplicate route: ${module} ${route.schema.operationId}`);
           }
           this._ROUTES.push(route.schema.operationId);
 
-          const url = `/${module}${route.url.replace(/\/$/, '')}`;
+          const url = `/${module}${route.url.replace(/\/$/, "")}`;
           server.route({
             ...route,
             ...(route.auth === true &&
@@ -83,19 +81,19 @@ export class Registrar implements IRegistrar {
             url,
             handler: async (request, reply) => {
               const { logger } = request;
-              logger.info('Request received.');
+              logger.info("Request received.");
 
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              // biome-ignore lint/suspicious/noExplicitAny: need any
               const instance: any = container.resolve(service.constructor);
               const method = instance[route.schema.operationId];
 
               const result = await method.call(instance, request);
-              logger.info('Request Succeeded.');
+              logger.info("Request Succeeded.");
               logger.dumpInfoLogs();
               reply.code(200).send(result);
             },
           });
-        });
+        }
         done();
       });
     }

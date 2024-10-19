@@ -1,14 +1,14 @@
-import swagger, { SwaggerOptions } from '@fastify/swagger';
-import swaggerUI from '@fastify/swagger-ui';
-import { FastifyInstance } from 'fastify';
-import { container, inject, singleton } from 'tsyringe';
-import { v4 as uuidv4 } from 'uuid';
+import swagger, { SwaggerOptions } from "@fastify/swagger";
+import swaggerUI from "@fastify/swagger-ui";
+import { FastifyInstance } from "fastify";
+import { container, inject, singleton } from "tsyringe";
+import { v4 as uuidv4 } from "uuid";
 
-import { DI_TOKEN } from '@/di';
-import { HTTPError } from '@/errors';
-import { ILogger, LoggerFactory, TracingStorage } from '@/logger';
+import { DI_TOKEN } from "@/di";
+import { HTTPError } from "@/errors";
+import { ILogger, LoggerFactory, TracingStorage } from "@/logger";
 
-declare module 'fastify' {
+declare module "fastify" {
   interface FastifyRequest {
     traceId: string;
     logger: ILogger;
@@ -23,12 +23,12 @@ export interface IServerExtension {
 class ErrorExtension implements IServerExtension {
   constructor(
     @inject(DI_TOKEN.FASTIFY) private readonly _server: FastifyInstance,
-    private readonly _loggerFactory: LoggerFactory
+    private readonly _loggerFactory: LoggerFactory,
   ) {}
 
   setup() {
-    this._server.addHook('preHandler', async (request) => {
-      request.logger = this._loggerFactory.createLogger(request.method + ' ' + request.routerPath);
+    this._server.addHook("preHandler", async (request) => {
+      request.logger = this._loggerFactory.createLogger(`${request.method} ${request.routeOptions.url}`);
     });
 
     this._server.setErrorHandler((error, request, reply) => {
@@ -46,7 +46,7 @@ class ErrorExtension implements IServerExtension {
       } else if (error instanceof Error) {
         reply.code(500).send({ detail: error.message });
       } else {
-        reply.code(500).send({ detail: 'Unknown error.' });
+        reply.code(500).send({ detail: "Unknown error." });
       }
     });
   }
@@ -57,15 +57,15 @@ class SwaggerExtension implements IServerExtension {
   private readonly _swaggerOptions: SwaggerOptions = {
     openapi: {
       info: {
-        title: 'My API',
-        version: '1.0.0',
+        title: "My API",
+        version: "1.0.0",
       },
       components: {
         securitySchemes: {
           bearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
           },
         },
       },
@@ -81,7 +81,7 @@ class SwaggerExtension implements IServerExtension {
   public setup() {
     this._server.register(swagger, this._swaggerOptions);
     this._server.register(swaggerUI, {
-      routePrefix: '/docs',
+      routePrefix: "/docs",
     });
   }
 }
@@ -90,11 +90,11 @@ class SwaggerExtension implements IServerExtension {
 class TracingExtension implements IServerExtension {
   constructor(
     @inject(DI_TOKEN.FASTIFY) private readonly _server: FastifyInstance,
-    private readonly _storage: TracingStorage
+    private readonly _storage: TracingStorage,
   ) {}
 
   public setup() {
-    this._server.addHook('onRequest', (request, _reply, done) => {
+    this._server.addHook("onRequest", (request, _reply, done) => {
       // create uuid
       const traceId = uuidv4();
       request.traceId = traceId;
@@ -104,7 +104,7 @@ class TracingExtension implements IServerExtension {
 }
 
 export default function bootstrapExtensions() {
-  [ErrorExtension, SwaggerExtension, TracingExtension].forEach((ext) => {
+  for (const ext of [ErrorExtension, SwaggerExtension, TracingExtension]) {
     container.registerSingleton<IServerExtension>(DI_TOKEN.SERVER_EXTENSION, ext);
-  });
+  }
 }

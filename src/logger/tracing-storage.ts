@@ -1,6 +1,6 @@
-import { AsyncLocalStorage } from 'async_hooks';
-import { HookHandlerDoneFunction } from 'fastify';
-import { singleton } from 'tsyringe';
+import { AsyncLocalStorage } from "node:async_hooks";
+import { HookHandlerDoneFunction } from "fastify";
+import { singleton } from "tsyringe";
 
 type TStore = Map<string, string>;
 
@@ -11,7 +11,7 @@ export interface ITracingStorage {
 
 @singleton()
 export class TracingStorage implements ITracingStorage {
-  private readonly _KEY = 'request-info' as const;
+  private readonly _KEY = "request-info" as const;
   private readonly _storage: AsyncLocalStorage<TStore> = new AsyncLocalStorage();
 
   public run(traceId: string, callback: HookHandlerDoneFunction) {
@@ -26,6 +26,6 @@ export class TracingStorage implements ITracingStorage {
   }
 
   public get traceId(): string {
-    return this._storage.getStore()?.get(this._KEY) ?? 'Unknown Trace';
+    return this._storage.getStore()?.get(this._KEY) ?? "Unknown Trace";
   }
 }

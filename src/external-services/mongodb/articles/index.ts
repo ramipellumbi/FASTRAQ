@@ -1,2 +1,2 @@
-export * from './articles.controller';
-export * from './articles.schema';
+export * from "./articles.controller";
+export * from "./articles.schema";

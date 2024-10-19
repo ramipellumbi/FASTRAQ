@@ -1,11 +1,11 @@
-import { FilterQuery } from 'mongoose';
-import { inject, singleton } from 'tsyringe';
+import { FilterQuery } from "mongoose";
+import { inject, singleton } from "tsyringe";
 
-import { IArticleModel } from './articles.schema';
+import { IArticleModel } from "./articles.schema";
 
-import { log } from '@/decorators';
-import { EXTERNAL_SERVICE_TOKEN } from '@/di';
-import { TArticle, TGetArticlesQueryParams } from '@/schemas/articles';
+import { log } from "@/decorators";
+import { EXTERNAL_SERVICE_TOKEN } from "@/di";
+import { TArticle, TGetArticlesQueryParams } from "@/schemas/articles";
 
 @singleton()
 export class ArticlesController {
@@ -18,15 +18,15 @@ export class ArticlesController {
     const mongoQuery: FilterQuery<TArticle> = {};
 
     if (author) {
-      mongoQuery['author'] = author;
+      mongoQuery.author = author;
     }
 
     if (title) {
-      mongoQuery['title'] = title;
+      mongoQuery.title = title;
     }
 
     if (tags) {
-      mongoQuery['tags'] = { $in: tags };
+      mongoQuery.tags = { $in: tags };
     }
 
     const articles = await this._model.find<TArticle>(mongoQuery);

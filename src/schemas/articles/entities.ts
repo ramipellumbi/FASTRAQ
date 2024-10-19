@@ -1,16 +1,16 @@
-import { Type } from '@sinclair/typebox';
+import { Type } from "@sinclair/typebox";
 
-import { TAGS } from './constants';
-import { Schema, StringEnum } from '../util';
+import { Schema, StringEnum } from "../util";
+import { TAGS } from "./constants";
 
 const DatabaseDate = Type.Unsafe<Date>({
-  type: 'string',
-  format: 'date-time',
+  type: "string",
+  format: "date-time",
 });
 
-export const Tag = StringEnum('Tag', TAGS);
+export const Tag = StringEnum("Tag", TAGS);
 
-export const Article = Schema('Article', {
+export const Article = Schema("Article", {
   author: Type.String(),
   title: Type.String(),
   content: Type.String(),

@@ -1,12 +1,12 @@
-import { Static, TSchema } from '@sinclair/typebox';
-import { FastifyRequest, RouteHandlerMethod } from 'fastify';
+import { Static, TSchema } from "@sinclair/typebox";
+import { FastifyRequest, RouteHandlerMethod } from "fastify";
 
-import { TSchemas } from '@/schemas';
+import { TSchemas } from "@/schemas";
 
 /**
  * Valid HTTP methods.
  */
-export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+export type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /**
  * Represents a set of JSON schemas.
@@ -33,19 +33,18 @@ export interface IRoute {
 /**
  * Type for the request object received by a route
  */
-export type TypedRequest<T extends Pick<IRoute, 'body' | 'params' | 'query' | 'response'>> =
-  FastifyRequest<{
-    Body: Static<TSchemas[NonNullable<T['body']>]>;
-    Querystring: Static<TSchemas[NonNullable<T['query']>]>;
-    Params: Static<TSchemas[NonNullable<T['params']>]>;
-    Reply: Static<TSchemas[NonNullable<T['response']>]>;
-  }>;
+export type TypedRequest<T extends Pick<IRoute, "body" | "params" | "query" | "response">> = FastifyRequest<{
+  Body: Static<TSchemas[NonNullable<T["body"]>]>;
+  Querystring: Static<TSchemas[NonNullable<T["query"]>]>;
+  Params: Static<TSchemas[NonNullable<T["params"]>]>;
+  Reply: Static<TSchemas[NonNullable<T["response"]>]>;
+}>;
 
 /**
  * Type for the response object returned by a route
  */
-export type TypedResponse<T extends IRoute> = T['response'] extends keyof TSchemas
-  ? Promise<Static<TSchemas[NonNullable<T['response']>]>>
+export type TypedResponse<T extends IRoute> = T["response"] extends keyof TSchemas
+  ? Promise<Static<TSchemas[NonNullable<T["response"]>]>>
   : Promise<void>;
 
 /**

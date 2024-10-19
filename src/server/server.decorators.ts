@@ -1,40 +1,42 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { IRoute, IRouteConfig, Method, TypedRequest, TypedResponse } from './server.types';
+import { IRoute, IRouteConfig, Method, TypedRequest, TypedResponse } from "./server.types";
 
-export const ROUTES_META_DATA_KEY = Symbol('routes');
-export const MODULE_META_DATA_KEY = Symbol('module');
+export const ROUTES_META_DATA_KEY = Symbol("routes");
+export const MODULE_META_DATA_KEY = Symbol("module");
 
 export function Service(module: string) {
-  return function <T extends { new (...args: any[]): object }>(constructor: T) {
+  // biome-ignore lint/suspicious/noExplicitAny: need any
+  // biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
+  return <T extends { new (...args: any[]): object }>(constructor: T) => {
     Reflect.defineMetadata(MODULE_META_DATA_KEY, module, constructor);
 
     return constructor;
   };
 }
 
-export const Get = createRouteDecorator('GET');
-export const Delete = createRouteDecorator('DELETE');
-export const Patch = createRouteDecorator('PATCH');
-export const Post = createRouteDecorator('POST');
-export const Put = createRouteDecorator('PUT');
+export const Get = createRouteDecorator("GET");
+export const Delete = createRouteDecorator("DELETE");
+export const Patch = createRouteDecorator("PATCH");
+export const Post = createRouteDecorator("POST");
+export const Put = createRouteDecorator("PUT");
 
 function createRouteDecorator(httpMethod: Method) {
+  // biome-ignore lint/suspicious/noExplicitAny: need any
   return function decorator<const R extends IRoute>(this: any, url: string, spec?: R) {
     return (
+      // biome-ignore lint/suspicious/noExplicitAny: need any
       _target: any,
       propertyName: string | symbol,
-      descriptor: TypedPropertyDescriptor<(...args: TypedRequest<R>[]) => TypedResponse<R>>
+      descriptor: TypedPropertyDescriptor<(...args: TypedRequest<R>[]) => TypedResponse<R>>,
     ) => {
       if (!descriptor) {
-        throw new Error('Error in decorator - no descriptor');
+        throw new Error("Error in decorator - no descriptor");
       }
 
-      if (!url.startsWith('/')) {
+      if (!url.startsWith("/")) {
         throw new Error('Error in route decorator - url must start with "/"');
       }
 
-      const routes: IRouteConfig[] =
-        Reflect.getMetadata(ROUTES_META_DATA_KEY, _target.constructor) || [];
+      const routes: IRouteConfig[] = Reflect.getMetadata(ROUTES_META_DATA_KEY, _target.constructor) || [];
       routes.push({
         url,
         method: httpMethod,

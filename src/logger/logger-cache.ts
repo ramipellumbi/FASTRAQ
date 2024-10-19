@@ -1,8 +1,8 @@
-import { singleton } from 'tsyringe';
+import { singleton } from "tsyringe";
 
-import { TracingStorage } from './tracing-storage';
+import { TracingStorage } from "./tracing-storage";
 
-export type LogLevel = 'info' | 'error' | 'debug';
+export type LogLevel = "info" | "error" | "debug";
 
 type ILog = {
   level: LogLevel;
